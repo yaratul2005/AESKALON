@@ -4,28 +4,33 @@ require_once '../config/config.php';
 require_once '../core/Router.php';
 require_once '../core/Database.php';
 
-// Helper function for Assets
+// Helper function
 function asset($path) {
     return SITE_URL . '/' . ltrim($path, '/');
 }
 
-// Router Setup
 $router = new Router();
 
-// Routes
+// Frontend Routes
 $router->add('GET', '/', 'HomeController', 'index');
 $router->add('GET', '/watch/(\d+)', 'WatchController', 'index');
+$router->add('GET', '/browse', 'BrowseController', 'index');
 
 // Admin Routes
 $router->add('GET', '/admin', 'AdminController', 'login');
+$router->add('GET', '/admin/logout', 'AdminController', 'logout');
 $router->add('POST', '/admin/auth', 'AdminController', 'auth');
 $router->add('GET', '/admin/dashboard', 'AdminController', 'dashboard');
+$router->add('GET', '/admin/settings', 'AdminController', 'settings');
 $router->add('POST', '/admin/update', 'AdminController', 'updateSettings');
+$router->add('GET', '/admin/users', 'AdminController', 'users');
+$router->add('POST', '/admin/ban-ip', 'AdminController', 'banIp');
+$router->add('POST', '/admin/unban-ip', 'AdminController', 'unbanIp');
 $router->add('POST', '/admin/run-updates', 'AdminController', 'runUpdates');
+$router->add('GET', '/admin/test-smtp', 'AdminController', 'testSmtp');
 
 // Dispatch
 $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-// Handle subdirectory deployment if consistent with config
 $scriptName = dirname($_SERVER['SCRIPT_NAME']);
 if ($scriptName !== '/' && strpos($url, $scriptName) === 0) {
     $url = substr($url, strlen($scriptName));

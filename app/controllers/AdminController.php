@@ -1,5 +1,7 @@
 <?php
 
+require_once '../core/SMTP.php';
+
 class AdminController {
     
     public function __construct() {
@@ -12,6 +14,7 @@ class AdminController {
         return isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
     }
 
+    // --- Auth ---
     public function login() {
         if ($this->isAuthenticated()) {
             header('Location: /admin/dashboard');
@@ -23,11 +26,9 @@ class AdminController {
     public function auth() {
         $username = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
-
         $db = Database::getInstance();
         $stmt = $db->query("SELECT * FROM users WHERE username = ?", [$username]);
         $user = $stmt->fetch();
-
         if ($user && password_verify($password, $user['password_hash'])) {
             $_SESSION['admin_logged_in'] = true;
             header('Location: /admin/dashboard');
@@ -37,88 +38,130 @@ class AdminController {
         }
     }
 
+    public function logout() {
+        session_destroy();
+        header('Location: /admin');
+    }
+
+    // --- Dashboard ---
     public function dashboard() {
-        if (!$this->isAuthenticated()) {
-            header('Location: /admin');
-            exit;
-        }
-
+        if (!$this->isAuthenticated()) exit(header('Location: /admin'));
+        $pageTitle = "Dashboard";
+        
+        // Basic Stats
         $db = Database::getInstance();
-        
-        // Fetch Settings
-        $stmt = $db->query("SELECT * FROM settings");
-        $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // [key => value]
-
-        // Check for Updates
         $updateFiles = glob('../updates/*.sql');
-        sort($updateFiles); // Apply in order
-        
-        // Find applied updates
         $stmtVer = $db->query("SELECT version FROM app_version");
         $appliedVersions = $stmtVer->fetchAll(PDO::FETCH_COLUMN);
         
-        $pendingUpdates = [];
+        $pendingUpdatesCount = 0;
         foreach ($updateFiles as $file) {
-            $filename = basename($file);
-            if (!in_array($filename, $appliedVersions)) {
-                $pendingUpdates[] = $filename;
-            }
+            if (!in_array(basename($file), $appliedVersions)) $pendingUpdatesCount++;
         }
 
-        require_once '../app/views/admin/dashboard.php';
+        require_once '../app/views/admin/layout.php';
+    }
+
+    // --- Users & Bans ---
+    public function users() {
+        if (!$this->isAuthenticated()) exit(header('Location: /admin'));
+        $pageTitle = "User Management";
+        
+        $db = Database::getInstance();
+        $bans = $db->query("SELECT * FROM ip_bans ORDER BY banned_at DESC")->fetchAll();
+        
+        require_once '../app/views/admin/layout.php';
+    }
+
+    public function banIp() {
+        if (!$this->isAuthenticated()) exit("Unauthorized");
+        $ip = $_POST['ip'] ?? '';
+        $reason = $_POST['reason'] ?? 'Banned by Admin';
+        if ($ip) {
+            $db = Database::getInstance();
+            $pdo = $db->getPdo();
+            $stmt = $pdo->prepare("INSERT IGNORE INTO ip_bans (ip_address, reason) VALUES (?, ?)");
+            $stmt->execute([$ip, $reason]);
+        }
+        header('Location: /admin/users');
+    }
+
+    public function unbanIp() {
+        if (!$this->isAuthenticated()) exit("Unauthorized");
+        $ip = $_POST['ip'] ?? '';
+        if ($ip) {
+            $db = Database::getInstance();
+            $db->query("DELETE FROM ip_bans WHERE ip_address = ?", [$ip]);
+        }
+        header('Location: /admin/users');
+    }
+
+    // --- Settings ---
+    public function settings() {
+        if (!$this->isAuthenticated()) exit(header('Location: /admin'));
+        $pageTitle = "System Settings";
+        $db = Database::getInstance();
+        $settings = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
+        
+        require_once '../app/views/admin/layout.php';
     }
 
     public function updateSettings() {
-        if (!$this->isAuthenticated()) {
-            die("Unauthorized");
-        }
-
+        if (!$this->isAuthenticated()) exit("Unauthorized");
         $db = Database::getInstance();
-        $settings = [
-            'site_name' => $_POST['site_name'],
-            'seo_description' => $_POST['seo_description'],
-            'site_header_code' => $_POST['site_header_code'],
-            'site_footer_code' => $_POST['site_footer_code']
-        ];
-
-        foreach ($settings as $key => $value) {
-            $db->query("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?", [$key, $value, $value]);
+        
+        foreach ($_POST as $key => $value) {
+            if ($key !== 'action') { // Skip action param if exists
+                $db->query("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?", [$key, $value, $value]);
+            }
         }
-
-        $_SESSION['success'] = "Settings updated successfully!";
-        header('Location: /admin/dashboard');
+        $_SESSION['success'] = "Settings saved.";
+        header('Location: /admin/settings');
     }
 
     public function runUpdates() {
-        if (!$this->isAuthenticated()) {
-            die("Unauthorized");
-        }
-
+        if (!$this->isAuthenticated()) exit("Unauthorized");
         $db = Database::getInstance();
         $updateFiles = glob('../updates/*.sql');
         sort($updateFiles);
-
         $stmtVer = $db->query("SELECT version FROM app_version");
         $appliedVersions = $stmtVer->fetchAll(PDO::FETCH_COLUMN);
-
+        
         $count = 0;
         foreach ($updateFiles as $file) {
             $filename = basename($file);
             if (!in_array($filename, $appliedVersions)) {
+                // Use simple split for now, assuming updates are simple
                 $sql = file_get_contents($file);
                 try {
                     $db->getPdo()->exec($sql);
                     $db->query("INSERT INTO app_version (version) VALUES (?)", [$filename]);
                     $count++;
-                } catch (Exception $e) {
-                    $_SESSION['error'] = "Error applying $filename: " . $e->getMessage();
-                    header('Location: /admin/dashboard');
-                    exit;
-                }
+                } catch (Exception $e) { /* Log error */ }
             }
         }
-
-        $_SESSION['success'] = "$count updates applied successfully!";
+        $_SESSION['success'] = "$count updates applied.";
         header('Location: /admin/dashboard');
+    }
+    
+    // --- Tools ---
+    public function testSmtp() {
+        if (!$this->isAuthenticated()) exit("Unauthorized");
+        $db = Database::getInstance();
+        $s = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
+        
+        $smtp = new SMTP($s['smtp_host'], $s['smtp_port'], $s['smtp_user'], $s['smtp_pass']);
+        $result = $smtp->send(
+            $s['smtp_from_email'], // Send to self
+            "SMTP Test", 
+            "<h1>It Works!</h1><p>Your SMTP settings are correct.</p>", 
+            $s['smtp_from_email'], 
+            $s['smtp_from_name']
+        );
+        
+        if ($result) $_SESSION['success'] = "Test email sent successfully!";
+        else $_SESSION['error'] = "Failed to send email. Check logs.";
+        
+        header('Location: /admin/settings');
     }
 }

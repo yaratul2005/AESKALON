@@ -1,75 +1,70 @@
 <style>
-    .player-container {
-        max-width: 1200px;
-        margin: 2rem auto;
-        padding: 0 20px;
-    }
-
-    .iframe-wrapper {
-        position: relative;
-        padding-bottom: 56.25%; /* 16:9 */
-        height: 0;
-        background: #000;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 0 50px rgba(56, 189, 248, 0.1);
-    }
-
-    .iframe-wrapper iframe {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        border: none;
-    }
-
-    .movie-details {
-        margin-top: 2rem;
-        background: var(--surface);
-        padding: 2rem;
-        border-radius: 12px;
+    .episode-scroller {
         display: flex;
-        gap: 30px;
+        overflow-x: auto;
+        gap: 10px;
+        padding: 10px 0;
+        margin-top: 10px;
     }
-
-    .poster-thumb {
-        width: 200px;
+    .episode-card {
+        min-width: 140px;
+        background: #1e293b;
         border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.2s;
     }
-
-    .meta-info h1 {
-        margin-top: 0;
-        color: var(--primary);
+    .episode-card:hover, .episode-card.active {
+        border-color: var(--primary);
+        background: #334155;
     }
-
-    .tagline {
-        font-style: italic;
-        color: var(--text-muted);
-        margin-bottom: 1rem;
-    }
-
-    .overview {
-        line-height: 1.6;
-    }
-
-    @media (max-width: 768px) {
-        .movie-details { flex-direction: column; }
-        .poster-thumb { width: 100%; max-width: 300px; margin: 0 auto; }
-    }
+    .ep-num { font-size: 0.8rem; color: var(--text-muted); }
+    .ep-title { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 </style>
 
 <div class="player-container animate-fade-in">
+    <!-- VidLink Player -->
     <div class="iframe-wrapper">
-        <iframe src="https://vidlink.pro/movie/<?= $movie['id'] ?>" allowfullscreen></iframe>
+        <?php 
+            $src = "https://vidlink.pro/movie/$id";
+            if ($type == 'tv') {
+                $src = "https://vidlink.pro/tv/$id/$season/$episode";
+            }
+        ?>
+        <iframe src="<?= $src ?>" allowfullscreen></iframe>
     </div>
+
+    <!-- Episode Selector for Series -->
+    <?php if ($type == 'tv'): ?>
+        <div style="margin-top: 20px;">
+            <h3>Seasons</h3>
+            <select onchange="window.location.href='?type=tv&s='+this.value" style="padding: 8px; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 4px;">
+                <?php foreach($seasons as $s): ?>
+                    <option value="<?= $s['season_number'] ?>" <?= $s['season_number'] == $season ? 'selected' : '' ?>>
+                        Season <?= $s['season_number'] ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <h3>Episodes</h3>
+            <div class="episode-scroller">
+                <?php foreach($episodes as $ep): ?>
+                    <a href="?type=tv&s=<?= $season ?>&e=<?= $ep['episode_number'] ?>" 
+                       class="episode-card <?= $ep['episode_number'] == $episode ? 'active' : '' ?>">
+                        <div class="ep-num">Ep <?= $ep['episode_number'] ?></div>
+                        <div class="ep-title"><?= htmlspecialchars($ep['name']) ?></div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <div class="movie-details">
         <img src="https://image.tmdb.org/t/p/w500<?= $movie['poster_path'] ?>" class="poster-thumb">
         <div class="meta-info">
-            <h1><?= htmlspecialchars($movie['title']) ?></h1>
-            <div class="tagline"><?= htmlspecialchars($movie['tagline'] ?? '') ?></div>
+            <h1><?= htmlspecialchars($title) ?></h1>
             <p class="overview"><?= htmlspecialchars($movie['overview']) ?></p>
-            <p><strong>Release Date:</strong> <?= $movie['release_date'] ?></p>
-            <p><strong>Rating:</strong> <span style="color: var(--accent);">★ <?= $movie['vote_average'] ?></span></p>
         </div>
     </div>
 </div>

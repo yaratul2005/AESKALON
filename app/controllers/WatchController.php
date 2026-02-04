@@ -1,26 +1,41 @@
 <?php
 
 class WatchController {
-    public function index($tmdbId) {
-        $db = Database::getInstance();
-        $settings = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
-
-        // Fetch Movie Details
-        $url = TMDB_BASE_URL . '/movie/' . $tmdbId . '?api_key=' . TMDB_API_KEY;
-        
+    
+    private function fetchTMDB($endpoint) {
+        $url = TMDB_BASE_URL . $endpoint . (strpos($endpoint, '?') ? '&' : '?') . 'api_key=' . TMDB_API_KEY;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $response = curl_exec($ch);
-        curl_close($ch);
+        return json_decode(curl_exec($ch), true);
+    }
+
+    public function index($id) {
+        $type = $_GET['type'] ?? 'movie'; // 'movie' or 'tv'
+        $season = $_GET['s'] ?? 1;
+        $episode = $_GET['e'] ?? 1;
+
+        $db = Database::getInstance();
+        $settings = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
+
+        $movie = $this->fetchTMDB("/$type/$id");
         
-        $movie = json_decode($response, true);
         if (!$movie || isset($movie['success']) && !$movie['success']) {
-            echo "Movie not found.";
-            return;
+            echo "Content not found."; return;
         }
 
-        $pageTitle = "Watch " . $movie['title'];
+        // Logic for Series
+        $seasons = [];
+        $episodes = [];
+        if ($type == 'tv') {
+            $seasons = $movie['seasons'] ?? [];
+            // Fetch episodes for current season
+            $seasonData = $this->fetchTMDB("/tv/$id/season/$season");
+            $episodes = $seasonData['episodes'] ?? [];
+        }
+
+        $title = $movie['title'] ?? $movie['name'];
+        $pageTitle = "Watch " . $title;
         $pageDesc = $movie['overview'] ?? '';
 
         ob_start();

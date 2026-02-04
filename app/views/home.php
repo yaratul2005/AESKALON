@@ -1,155 +1,182 @@
 <style>
-    /* Hero Section */
-    .hero {
-        position: relative;
-        height: 60vh;
-        width: 100%;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-    
-    .hero-bg {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background-size: cover;
-        background-position: center;
-        filter: blur(4px) brightness(0.4);
-        z-index: -1;
-        transition: background-image 0.5s ease-in-out;
-    }
-
-    .hero-content {
-        max-width: 800px;
-        padding: 20px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .hero h1 {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        background: linear-gradient(to right, #fff, #94a3b8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .cta-btn {
-        display: inline-block;
-        padding: 12px 30px;
-        background: var(--primary);
-        color: #0f172a;
-        font-weight: 800;
-        text-decoration: none;
-        border-radius: 30px;
-        transition: transform 0.3s, box-shadow 0.3s;
-        box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-    }
-
-    .cta-btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
-    }
-
-    /* Movies Grid */
-    .section-title {
-        max-width: 1200px;
+    /* Horizontal Scroller */
+    .section-header {
+        max-width: 1400px;
         margin: 2rem auto 1rem;
-        padding: 0 20px;
-        font-size: 1.5rem;
-        border-left: 4px solid var(--accent);
-        padding-left: 10px;
-    }
-
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 20px;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    .movie-card {
-        background: var(--surface);
-        border-radius: 12px;
-        overflow: hidden;
-        transition: transform 0.3s, box-shadow 0.3s;
-        position: relative;
-        cursor: pointer;
-        display: block; /* For anchor tag */
-        text-decoration: none;
-    }
-
-    .movie-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-    }
-
-    .poster {
-        width: 100%;
-        aspect-ratio: 2/3;
-        object-fit: cover;
-        background: #334155;
-    }
-
-    .info {
-        padding: 15px;
-    }
-
-    .title {
-        color: var(--text);
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-    }
-
-    .meta {
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        margin-top: 5px;
+        padding: 0 4%;
         display: flex;
         justify-content: space-between;
+        align-items: center;
+    }
+    
+    .section-title span {
+        border-bottom: 2px solid var(--accent);
+        padding-bottom: 5px;
     }
 
-    .rating {
-        color: var(--accent);
-        font-weight: bold;
+    .scroller {
+        display: flex;
+        overflow-x: auto;
+        gap: 20px;
+        padding: 20px 4%;
+        scroll-behavior: smooth;
+        scrollbar-width: none; /* Firefox */
+    }
+    .scroller::-webkit-scrollbar { display: none; }
+
+    .movie-card {
+        min-width: 180px;
+        flex-shrink: 0;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .movie-card:hover {
+        transform: scale(1.05);
+        z-index: 10;
+    }
+
+    /* Advanced Hero */
+    .hero-advanced {
+        height: 70vh;
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        padding-bottom: 50px;
+    }
+    
+    .hero-advanced::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0; height: 50%;
+        background: linear-gradient(to top, var(--bg), transparent);
+        z-index: 0;
+    }
+
+    .hero-info {
+        position: relative;
+        z-index: 2;
+        padding: 0 4%;
+        width: 100%;
+        max-width: 800px;
+    }
+
+    .hero-info h1 {
+        font-size: 3.5rem;
+        line-height: 1.1;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    @media(max-width: 768px) {
+        .hero-advanced { height: 50vh; }
+        .hero-info h1 { font-size: 2rem; }
+        .movie-card { min-width: 140px; }
     }
 </style>
 
 <?php 
-    $heroMovie = $movies[0] ?? null; 
-    $heroImage = $heroMovie ? "https://image.tmdb.org/t/p/original" . $heroMovie['backdrop_path'] : '';
+    $hero = $trending[0] ?? null;
+    $heroImg = $hero ? "https://image.tmdb.org/t/p/original" . $hero['backdrop_path'] : '';
 ?>
 
-<?php if ($heroMovie): ?>
-<div class="hero">
-    <div class="hero-bg" style="background-image: url('<?= $heroImage ?>');"></div>
-    <div class="hero-content animate-fade-in">
-        <h1><?= htmlspecialchars($heroMovie['title']) ?></h1>
-        <p><?= htmlspecialchars(substr($heroMovie['overview'], 0, 150)) ?>...</p>
-        <a href="/watch/<?= $heroMovie['id'] ?>" class="cta-btn">Watch Now</a>
+<?php if($hero): ?>
+<div class="hero-advanced" style="background: url('<?= $heroImg ?>') no-repeat center center/cover;">
+    <div class="hero-info animate-fade-in">
+        <span class="badge" style="background: var(--primary); color: #000; padding: 5px 10px; font-weight: bold; border-radius: 4px;">#1 Trending</span>
+        <h1><?= htmlspecialchars($hero['title'] ?? $hero['name']) ?></h1>
+        <p style="color: #cbd5e1; font-size: 1.1rem; line-height: 1.6;"><?= substr($hero['overview'], 0, 200) ?>...</p>
+        <div style="margin-top: 20px;">
+            <a href="/watch/<?= $hero['id'] ?>?type=movie" class="btn-play">Watch Now</a>
+        </div>
     </div>
 </div>
 <?php endif; ?>
 
-<h2 class="section-title">Trending Now</h2>
-<div class="grid">
-    <?php foreach ($movies as $movie): ?>
-        <a href="/watch/<?= $movie['id'] ?>" class="movie-card animate-fade-in">
-            <img src="https://image.tmdb.org/t/p/w500<?= $movie['poster_path'] ?>" loading="lazy" class="poster" alt="<?= htmlspecialchars($movie['title']) ?>">
-            <div class="info">
-                <span class="title"><?= htmlspecialchars($movie['title']) ?></span>
-                <div class="meta">
-                    <span><?= substr($movie['release_date'], 0, 4) ?></span>
-                    <span class="rating">★ <?= $movie['vote_average'] ?></span>
-                </div>
-            </div>
+<!-- Trending Movies -->
+<div class="section-header">
+    <h2 class="section-title"><span>Trending Movies</span></h2>
+</div>
+<div class="scroller">
+    <?php foreach ($trending as $m): ?>
+        <a href="/watch/<?= $m['id'] ?>?type=movie" class="movie-card">
+            <img src="https://image.tmdb.org/t/p/w342<?= $m['poster_path'] ?>" class="poster" loading="lazy">
+            <div class="mt-2 text-sm font-semibold truncate"><?= htmlspecialchars($m['title']) ?></div>
+            <div class="text-xs text-gray-400"><?= substr($m['release_date'] ?? '', 0, 4) ?></div>
         </a>
     <?php endforeach; ?>
 </div>
+
+<!-- Series -->
+<div class="section-header">
+    <h2 class="section-title"><span>Popular Series</span></h2>
+</div>
+<div class="scroller">
+    <?php foreach ($series as $s): ?>
+        <a href="/watch/<?= $s['id'] ?>?type=tv" class="movie-card">
+            <img src="https://image.tmdb.org/t/p/w342<?= $s['poster_path'] ?>" class="poster" loading="lazy">
+            <div class="mt-2 text-sm font-semibold truncate"><?= htmlspecialchars($s['name']) ?></div>
+        </a>
+    <?php endforeach; ?>
+</div>
+
+<!-- Anime -->
+<div class="section-header">
+    <h2 class="section-title"><span>Anime</span></h2>
+</div>
+<div class="scroller">
+    <?php foreach ($anime as $a): ?>
+        <a href="/watch/<?= $a['id'] ?>?type=tv" class="movie-card">
+            <img src="https://image.tmdb.org/t/p/w342<?= $a['poster_path'] ?>" class="poster" loading="lazy">
+            <div class="mt-2 text-sm font-semibold truncate"><?= htmlspecialchars($a['name']) ?></div>
+        </a>
+    <?php endforeach; ?>
+</div>
+
+<!-- Infinite Scroll Container -->
+<div class="section-header">
+    <h2 class="section-title"><span>Discover More</span></h2>
+</div>
+<div class="grid" id="infinite-grid"></div>
+<div id="loading" style="text-align: center; padding: 20px; display: none;">Loading...</div>
+
+<script>
+    // Simple Infinite Scroll
+    let page = 1;
+    const grid = document.getElementById('infinite-grid');
+    const loading = document.getElementById('loading');
+
+    // Initial Load
+    loadMore();
+
+    window.addEventListener('scroll', () => {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+            loadMore();
+        }
+    });
+
+    async function loadMore() {
+        if (loading.style.display === 'block') return;
+        loading.style.display = 'block';
+        
+        try {
+            const res = await fetch(`/browse?page=${page}`);
+            const data = await res.json();
+            
+            data.results.forEach(m => {
+                if (!m.poster_path) return;
+                const div = document.createElement('a');
+                div.href = `/watch/${m.id}?type=movie`;
+                div.className = 'movie-card animate-fade-in';
+                div.innerHTML = `
+                    <img src="https://image.tmdb.org/t/p/w342${m.poster_path}" class="poster" loading="lazy">
+                    <div class="info">
+                        <span class="title">${m.title || m.name}</span>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+            page++;
+        } catch(e) {}
+        loading.style.display = 'none';
+    }
+</script>
