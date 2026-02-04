@@ -40,7 +40,7 @@
     <!-- Dynamic Content Include -->
     <?php 
         $route = str_replace('/admin/', '', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
-        elseif ($route == 'dashboard') include 'dashboard.php';
+        if ($route == 'dashboard') include 'dashboard.php';
         elseif ($route == 'users') include 'users.php';
         elseif ($route == 'settings') include 'settings.php';
         elseif ($route == 'pages') include 'pages.php';
