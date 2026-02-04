@@ -16,6 +16,7 @@
     <nav>
         <a href="/admin/dashboard" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'dashboard') ? 'active' : '' ?>">Dashboard</a>
         <a href="/admin/users" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'users') ? 'active' : '' ?>">Users & Bans</a>
+        <a href="/admin/pages" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'pages') ? 'active' : '' ?>">Pages (CMS)</a>
         <a href="/admin/settings" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'settings') ? 'active' : '' ?>">Settings</a>
     </nav>
     <div class="nav-footer">
@@ -39,9 +40,11 @@
     <!-- Dynamic Content Include -->
     <?php 
         $route = str_replace('/admin/', '', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
-        if ($route == 'dashboard') include 'dashboard.php';
+        elseif ($route == 'dashboard') include 'dashboard.php';
         elseif ($route == 'users') include 'users.php';
         elseif ($route == 'settings') include 'settings.php';
+        elseif ($route == 'pages') include 'pages.php';
+        elseif (strpos($route, 'pages/') !== false) include 'page_editor.php';
     ?>
 </main>
 

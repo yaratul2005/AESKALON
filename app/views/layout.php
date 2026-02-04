@@ -101,8 +101,39 @@
 </main>
 
 <footer>
-    <div class="container">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; flex-wrap: wrap; gap: 40px; justify-content: space-between; text-align: left;">
+        
+        <!-- About / Dynamic Pages -->
+        <div style="flex: 1; min-width: 250px;">
+            <h3 style="color: var(--text); margin-bottom: 20px;">Great10</h3>
+            <p style="margin-bottom: 20px;">The best streaming experience for movies, series, and anime.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <?php
+                    // Directly fetch pages for footer (simple approach)
+                    $db_footer = Database::getInstance();
+                    $footer_pages = $db_footer->query("SELECT title, slug FROM pages LIMIT 5")->fetchAll();
+                ?>
+                <?php foreach($footer_pages as $p): ?>
+                    <a href="/p/<?= $p['slug'] ?>" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;"><?= htmlspecialchars($p['title']) ?></a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div style="flex: 1; min-width: 300px;">
+            <h3 style="color: var(--text); margin-bottom: 20px;">Contact Us</h3>
+            <form action="/contact" method="POST" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+                <input type="email" name="email" required placeholder="Your Email" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: white;">
+                <textarea name="message" required placeholder="How can we help?" rows="3" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: white;"></textarea>
+                <button type="submit" class="btn-play" style="border: none; cursor: pointer; font-size: 0.9rem; padding: 10px 20px;">Send Message</button>
+            </form>
+        </div>
+
+    </div>
+    <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 0.9rem;">
         <?= $settings['site_footer_code'] ?? '' ?>
+        <p>&copy; <?= date('Y') ?> Great10. All rights reserved.</p>
     </div>
 </footer>
 

@@ -19,6 +19,10 @@ $router->add('GET', '/movies', 'BrowseController', 'page', 'movie');
 $router->add('GET', '/series', 'BrowseController', 'page', 'tv');
 $router->add('GET', '/anime', 'BrowseController', 'page', 'anime');
 
+// Custom Pages & Contact
+$router->add('GET', '/p/([a-z0-9-]+)', 'PageController', 'show');
+$router->add('POST', '/contact', 'PageController', 'contact');
+
 // API Routes
 $router->add('GET', '/api/browse', 'BrowseController', 'api');
 $router->add('GET', '/api/search', 'BrowseController', 'search');
@@ -35,6 +39,13 @@ $router->add('POST', '/admin/ban-ip', 'AdminController', 'banIp');
 $router->add('POST', '/admin/unban-ip', 'AdminController', 'unbanIp');
 $router->add('POST', '/admin/run-updates', 'AdminController', 'runUpdates');
 $router->add('GET', '/admin/test-smtp', 'AdminController', 'testSmtp');
+
+// Admin CMS
+$router->add('GET', '/admin/pages', 'AdminController', 'pages');
+$router->add('GET', '/admin/pages/new', 'AdminController', 'editPage');
+$router->add('GET', '/admin/pages/edit/(\d+)', 'AdminController', 'editPage');
+$router->add('GET', '/admin/pages/delete/(\d+)', 'AdminController', 'deletePage');
+$router->add('POST', '/admin/pages/save', 'AdminController', 'savePage');
 
 $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $scriptName = dirname($_SERVER['SCRIPT_NAME']);

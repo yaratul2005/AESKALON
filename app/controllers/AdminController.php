@@ -164,4 +164,51 @@ class AdminController {
         
         header('Location: /admin/settings');
     }
+
+    // --- CMS Pages ---
+    public function pages() {
+        if (!$this->isAuthenticated()) exit(header('Location: /admin'));
+        $pageTitle = "Manage Pages";
+        $db = Database::getInstance();
+        $pages = $db->query("SELECT * FROM pages ORDER BY id DESC")->fetchAll();
+        require_once '../app/views/admin/layout.php';
+    }
+
+    public function editPage($id = null) {
+        if (!$this->isAuthenticated()) exit(header('Location: /admin'));
+        $pageTitle = $id ? "Edit Page" : "New Page";
+        $page = [];
+        if ($id) {
+            $db = Database::getInstance();
+            $stmt = $db->query("SELECT * FROM pages WHERE id = ?", [$id]);
+            $page = $stmt->fetch();
+        }
+        require_once '../app/views/admin/layout.php';
+    }
+
+    public function savePage() {
+        if (!$this->isAuthenticated()) exit("Unauthorized");
+        $id = $_POST['id'] ?? null;
+        $title = $_POST['title'];
+        $content = $_POST['content'];
+        $slug = $_POST['slug'] ?: strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+
+        $db = Database::getInstance();
+        if ($id) {
+            $db->query("UPDATE pages SET title=?, slug=?, content=? WHERE id=?", [$title, $slug, $content, $id]);
+        } else {
+            $db->query("INSERT INTO pages (title, slug, content) VALUES (?, ?, ?)", [$title, $slug, $content]);
+        }
+        
+        $_SESSION['success'] = "Page saved successfully.";
+        header('Location: /admin/pages');
+    }
+
+    public function deletePage($id) {
+        if (!$this->isAuthenticated()) exit("Unauthorized");
+        $db = Database::getInstance();
+        $db->query("DELETE FROM pages WHERE id = ?", [$id]);
+        $_SESSION['success'] = "Page deleted.";
+        header('Location: /admin/pages');
+    }
 }
