@@ -42,26 +42,71 @@ try {
 }
 
 // 3. Helper to parse and execute SQL
+function splitSql($sql) {
+    $queries = [];
+    $buffer = '';
+    $inString = false;
+    $len = strlen($sql);
+
+    for ($i = 0; $i < $len; $i++) {
+        $char = $sql[$i];
+        
+        // Handle escaped quotes
+        if ($inString && $char === '\\' && $i + 1 < $len) {
+            $buffer .= $char . $sql[$i + 1];
+            $i++; // Skip next char
+            continue;
+        }
+
+        // Toggle string state
+        if ($char === "'") {
+            $inString = !$inString;
+        }
+
+        if ($char === ';' && !$inString) {
+            // End of query
+            $q = trim($buffer);
+            if (!empty($q)) {
+                $queries[] = $q;
+            }
+            $buffer = '';
+        } else {
+            $buffer .= $char;
+        }
+    }
+    
+    // Add last query if exists
+    $q = trim($buffer);
+    if (!empty($q)) {
+        $queries[] = $q;
+    }
+
+    return $queries;
+}
+
 function runSqlFile($pdo, $file) {
     if (!file_exists($file)) return false;
     
     $sql = file_get_contents($file);
-    // Remove comments
-    $sql = preg_replace('/--.*$/m', '', $sql);
-    $sql = preg_replace('/#.*$/m', '', $sql);
+    // Remove comments (basic removal, careful not to remove urls/content)
+    // We only remove lines starting with -- or #
+    $lines = explode("\n", $sql);
+    $cleanLines = [];
+    foreach ($lines as $line) {
+        $trim = trim($line);
+        if (strpos($trim, '--') === 0 || strpos($trim, '#') === 0) continue;
+        $cleanLines[] = $line;
+    }
+    $sql = implode("\n", $cleanLines);
     
-    // Split by semicolon
-    $queries = array_filter(array_map('trim', explode(';', $sql)));
+    $queries = splitSql($sql);
     
-    $errors = 0;
     foreach ($queries as $query) {
         if (!empty($query)) {
             try {
                 $pdo->exec($query);
             } catch (Exception $e) {
-                // Ignore specific errors like 'Duplicate column' if strictly necessary, 
-                // but usually we want to know. For INSERT IGNORE / IF NOT EXISTS it should be fine.
-                // We log but continue.
+                // Ignore duplicated entry issues usually
                 logMsg("Query Warning in " . basename($file) . ": " . $e->getMessage(), 'warning');
             }
         }
@@ -73,7 +118,7 @@ function runSqlFile($pdo, $file) {
 logMsg("Checking database schema...");
 $schemaFile = '../database/schema.sql';
 if (runSqlFile($pdo, $schemaFile)) {
-    logMsg("Base schema check/installation completed.", 'success');
+    logMsg("Base schema check/installation completed.", 'type-info');
 } else {
     logMsg("Error: Schema file not found at $schemaFile", 'error');
 }
@@ -84,7 +129,6 @@ $updateFiles = glob('../updates/*.sql');
 sort($updateFiles);
 
 // Check current version
-// We might have just created the table, so we check if version table exists first (it should from schema)
 try {
     $stmtVer = $pdo->query("SELECT version FROM app_version");
     $appliedVersions = $stmtVer->fetchAll(PDO::FETCH_COLUMN);
