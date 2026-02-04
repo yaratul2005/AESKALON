@@ -25,8 +25,9 @@
         <a href="/" class="logo"><?= htmlspecialchars($settings['site_name'] ?? 'Great10') ?></a>
         <nav>
             <a href="/">Home</a>
-            <a href="#">Movies</a>
-            <a href="#">Series</a>
+            <a href="/movies">Movies</a>
+            <a href="/series">Series</a>
+            <a href="/anime">Anime</a>
         </nav>
     </div>
 </header>
