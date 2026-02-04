@@ -534,7 +534,7 @@ footer {
         bottom: 0;
         width: 280px;
         background: #0f172a;
-        /* Solid background instead of var(--surface) for better contrast */
+        /* Solid Background */
         flex-direction: column;
         padding: 20px;
         padding-top: 80px;
@@ -559,6 +559,13 @@ footer {
     .search-input {
         display: none;
         /* Hidden by default on mobile, toggled */
+    }
+
+    /* Force show when active */
+    .search-container.mobile-active .search-input {
+        display: block !important;
+        opacity: 1;
+        visibility: visible;
     }
 
     .search-icon {

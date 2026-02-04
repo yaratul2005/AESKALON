@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /assets/
+
+Sitemap: https://great10.xyz/sitemap.php

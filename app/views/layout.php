@@ -3,8 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle) ?></title>
-    <meta name="description" content="<?= htmlspecialchars($pageDesc) ?>">
+    <title><?= htmlspecialchars($pageTitle ?? ($settings['site_name'] ?? 'Great10 Streaming')) ?></title>
+    <meta name="description" content="<?= htmlspecialchars($pageDesc ?? ($settings['seo_description'] ?? 'Watch movies and series online.')) ?>">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?= (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]" ?>">
+    <meta property="og:title" content="<?= htmlspecialchars($pageTitle ?? ($settings['site_name'] ?? 'Great10')) ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($pageDesc ?? ($settings['seo_description'] ?? 'Watch movies and series online.')) ?>">
+    <meta property="og:image" content="<?= htmlspecialchars($pageImage ?? 'https://' . $_SERVER['HTTP_HOST'] . '/assets/og-default.jpg') ?>">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="<?= (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]" ?>">
+    <meta property="twitter:title" content="<?= htmlspecialchars($pageTitle ?? ($settings['site_name'] ?? 'Great10')) ?>">
+    <meta property="twitter:description" content="<?= htmlspecialchars($pageDesc ?? ($settings['seo_description'] ?? 'Watch movies and series online.')) ?>">
+    <meta property="twitter:image" content="<?= htmlspecialchars($pageImage ?? 'https://' . $_SERVER['HTTP_HOST'] . '/assets/og-default.jpg') ?>">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
