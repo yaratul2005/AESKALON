@@ -195,7 +195,7 @@
             });
             const data = await res.json();
             
-            if (data.status === 'ok') {
+            if (data.status === 'success') {
                 input.value = '';
                 if(parentId) toggleReplyBox(parentId);
                 loadComments(); // Refresh list
