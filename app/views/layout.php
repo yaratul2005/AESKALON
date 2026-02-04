@@ -35,6 +35,25 @@
             <input type="text" class="search-input" placeholder="Search..." id="searchInput">
             <div class="search-results" id="searchResults"></div>
         </div>
+
+        <?php if(isset($_SESSION['user_id'])): ?>
+            <div class="user-menu" style="position: relative; margin-left: 20px;">
+                <button onclick="document.getElementById('userDropdown').classList.toggle('active')" style="background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                    <img src="<?= $_SESSION['user_avatar'] ?? 'https://ui-avatars.com/api/?name='.$_SESSION['user_username'].'&background=random' ?>" style="width: 32px; height: 32px; border-radius: 50%;">
+                </button>
+                <div id="userDropdown" style="position: absolute; right: 0; top: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; width: 150px; display: none; margin-top: 10px;">
+                    <a href="/dashboard" style="display: block; padding: 10px; color: var(--text); text-decoration: none;">Dashboard</a>
+                    <a href="/logout" style="display: block; padding: 10px; color: #f87171; text-decoration: none; border-top: 1px solid var(--border);">Logout</a>
+                </div>
+            </div>
+            <style> #userDropdown.active { display: block !important; } </style>
+        <?php else: ?>
+            <div style="margin-left: 20px; display: flex; gap: 10px;">
+                <a href="/login" style="color: var(--text); text-decoration: none; font-weight: 600;">Login</a>
+                <a href="/register" class="btn" style="padding: 5px 15px; font-size: 0.9rem;">Sign Up</a>
+            </div>
+        <?php endif; ?>
+
     </div>
 </header>
 <script>

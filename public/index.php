@@ -19,6 +19,27 @@ $router->add('GET', '/movies', 'BrowseController', 'page', 'movie');
 $router->add('GET', '/series', 'BrowseController', 'page', 'tv');
 $router->add('GET', '/anime', 'BrowseController', 'page', 'anime');
 
+// Auth Routes
+$router->add('GET', '/login', 'AuthController', 'login');
+$router->add('POST', '/login', 'AuthController', 'doLogin');
+$router->add('GET', '/register', 'AuthController', 'register');
+$router->add('POST', '/register', 'AuthController', 'doRegister');
+$router->add('GET', '/verify/([a-z0-9]+)', 'AuthController', 'verify');
+$router->add('POST', '/complete-registration', 'AuthController', 'completeRegistration');
+$router->add('GET', '/auth/google', 'AuthController', 'google');
+$router->add('GET', '/auth/google/callback', 'AuthController', 'googleCallback');
+$router->add('GET', '/logout', 'AuthController', 'logout');
+
+// User Dashboard
+$router->add('GET', '/dashboard', 'UserController', 'dashboard');
+$router->add('POST', '/dashboard/update', 'UserController', 'updateProfile');
+
+// Comments & User Actions API
+$router->add('GET', '/api/comments', 'CommentController', 'getComments');
+$router->add('POST', '/api/comments', 'CommentController', 'postComment');
+$router->add('POST', '/api/watch-later', 'UserController', 'toggleWatchLater');
+$router->add('POST', '/api/history', 'UserController', 'addToHistory');
+
 // Custom Pages & Contact
 $router->add('GET', '/p/([a-z0-9-]+)', 'PageController', 'show');
 $router->add('POST', '/contact', 'PageController', 'contact');
