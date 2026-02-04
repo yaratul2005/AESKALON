@@ -125,14 +125,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_admin'])) {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
     
+    // Auto-detect email from username if it looks like one, or use placeholder
+    $email = filter_var($username, FILTER_VALIDATE_EMAIL) ? $username : 'admin@example.com';
+
     if (!empty($username) && !empty($password)) {
         $hash = password_hash($password, PASSWORD_DEFAULT);
         
-        // Remove existing default admin if exists or any collision
-        // We will INSERT or UPDATE
         try {
-            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash) VALUES (?, ?) ON DUPLICATE KEY UPDATE password_hash = ?");
-            $stmt->execute([$username, $hash, $hash]);
+            // New Schema: users(username, email, password_hash, is_verified, ...)
+            // We use ON DUPLICATE KEY UPDATE to allow resetting admin
+            $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, is_verified) VALUES (?, ?, ?, 1) ON DUPLICATE KEY UPDATE password_hash = ?");
+            $stmt->execute([$username, $email, $hash, $hash]);
+            
+            // Assign Admin Role? Or assume first user is admin? 
+            // The current system checks 'is_admin' column if it exists, or just specific users.
+            // Let's ensure 'is_admin' is set if the column was added.
+            // Checking schema... "is_admin" defaults to 0. We should force it to 1.
+            
+            // Try to set is_admin=1 safely
+            try {
+                $pdo->query("UPDATE users SET is_admin = 1 WHERE username = " . $pdo->quote($username));
+            } catch (Exception $e) { /* Column might not exist in old versions, ignore */ }
+            
             logMsg("Admin account '$username' created/updated successfully!", 'success');
             $adminCreated = true;
         } catch (Exception $e) {
