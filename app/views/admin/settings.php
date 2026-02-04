@@ -46,7 +46,12 @@
             <label>Google Client Secret</label>
             <input type="password" name="google_client_secret" value="<?= htmlspecialchars($settings['google_client_secret'] ?? '') ?>">
             <label>Redirect URI</label>
-            <input type="text" name="google_redirect_uri" value="<?= htmlspecialchars($settings['google_redirect_uri'] ?? SITE_URL . '/auth/google/callback') ?>" readonly>
+            <?php 
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+                $domain = $_SERVER['HTTP_HOST'];
+                $defaultUri = $protocol . $domain . '/auth/google/callback';
+            ?>
+            <input type="text" name="google_redirect_uri" value="<?= htmlspecialchars($settings['google_redirect_uri'] ?? $defaultUri) ?>" readonly>
             <p style="font-size: 0.8rem; color: var(--text-muted);">Copy this Redirect URI to your Google Cloud Console.</p>
         </div>
 

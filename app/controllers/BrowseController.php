@@ -6,8 +6,6 @@ class BrowseController {
     
     public function page($type) {
         $db = Database::getInstance();
-        // Cache settings? No, settings change rarely but we want instant Admin updates. 
-        // We could cache them too but let's stick to heavy API calls first.
         $settings = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
         
         $titleMap = [
@@ -37,11 +35,9 @@ class BrowseController {
             $endpoint = '/discover/tv?with_keywords=210024';
         }
 
-        // Full URL for fetching, but for Caching Key we can just use the unique params
         $cacheKey = "browse_{$type}_{$page}";
         $apiUrl = TMDB_BASE_URL . $endpoint . (strpos($endpoint, '?') ? '&' : '?') . 'api_key=' . TMDB_API_KEY . "&page=$page";
 
-        // Use Cache Wrapper
         $data = Cache::remember($cacheKey, function() use ($apiUrl) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $apiUrl);
@@ -49,7 +45,32 @@ class BrowseController {
             $res = curl_exec($ch);
             curl_close($ch);
             return json_decode($res, true);
-        }, 43200); // Cache for 12 hours
+        }, 43200);
+
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    }
+
+    public function search() {
+        $query = $_GET['q'] ?? '';
+        if (strlen($query) < 2) {
+            echo json_encode(['results' => []]);
+            return;
+        }
+
+        $url = TMDB_BASE_URL . '/search/multi?api_key=' . TMDB_API_KEY . '&query=' . urlencode($query);
+        
+        // Cache search results for 1 hour to handle repeated typings
+        $cacheKey = "search_" . md5($query);
+        
+        $data = Cache::remember($cacheKey, function() use ($url) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            $res = curl_exec($ch);
+            curl_close($ch);
+            return json_decode($res, true);
+        }, 3600);
 
         header('Content-Type: application/json');
         echo json_encode($data);

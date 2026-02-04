@@ -1,5 +1,7 @@
 /* Global Reset */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
@@ -23,9 +25,22 @@ body {
     line-height: 1.5;
 }
 
-a { text-decoration: none; color: inherit; }
-img { max-width: 100%; display: block; }
-ul, ol { list-style: none; padding: 0; margin: 0; }
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+ul,
+ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
 
 /* Header */
 header {
@@ -58,18 +73,122 @@ header {
     letter-spacing: 1px;
 }
 
-nav { display: flex; gap: 20px; }
+
+/* Search */
+.search-container {
+    position: relative;
+    width: 300px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 15px;
+    padding-left: 40px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-radius: 12px;
+    margin-top: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border);
+    max-height: 400px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s;
+    z-index: 2000;
+}
+
+.search-results.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.search-item {
+    display: flex;
+    gap: 15px;
+    padding: 10px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+}
+
+.search-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.search-item img {
+    width: 40px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.search-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.search-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+.search-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+nav {
+    display: flex;
+    gap: 20px;
+}
+
 nav a {
     color: var(--text);
     font-weight: 500;
     transition: color 0.3s;
     font-size: 0.95rem;
 }
-nav a:hover { color: var(--primary); }
+
+nav a:hover {
+    color: var(--primary);
+}
 
 /* Main layout */
 main {
-    padding-top: 70px; /* Header Height */
+    padding-top: 70px;
+    /* Header Height */
     min-height: 80vh;
 }
 
@@ -84,8 +203,15 @@ footer {
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .animate-fade-in {
@@ -137,7 +263,7 @@ footer {
     font-size: clamp(2.5rem, 5vw, 4.5rem);
     line-height: 1.1;
     margin: 0 0 1rem 0;
-    text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .hero-info p {
@@ -161,6 +287,7 @@ footer {
     font-size: 1rem;
     transition: transform 0.2s, box-shadow 0.2s;
 }
+
 .btn-play:hover {
     transform: scale(1.05);
     box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
@@ -194,7 +321,10 @@ footer {
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
-.scroller::-webkit-scrollbar { display: none; }
+
+.scroller::-webkit-scrollbar {
+    display: none;
+}
 
 .movie-card {
     min-width: 160px;
@@ -205,7 +335,9 @@ footer {
     position: relative;
 }
 
-.movie-card:hover { transform: translateY(-8px); }
+.movie-card:hover {
+    transform: translateY(-8px);
+}
 
 .poster {
     width: 100%;
@@ -213,7 +345,7 @@ footer {
     object-fit: cover;
     border-radius: 12px;
     background: #334155;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .movie-card .title {
@@ -240,7 +372,11 @@ footer {
     margin: 0 auto;
     padding: 0 20px 40px;
 }
-.grid .movie-card { width: 100%; min-width: auto; }
+
+.grid .movie-card {
+    width: 100%;
+    min-width: auto;
+}
 
 /* Watch Page */
 .player-container {
@@ -251,17 +387,20 @@ footer {
 
 .iframe-wrapper {
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 */
+    padding-bottom: 56.25%;
+    /* 16:9 */
     background: #000;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
 .iframe-wrapper iframe {
     position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     border: none;
 }
 
@@ -278,7 +417,7 @@ footer {
 .poster-thumb {
     width: 220px;
     border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .meta-info h1 {
@@ -299,6 +438,7 @@ footer {
     gap: 10px;
     padding: 15px 0;
 }
+
 .episode-card {
     background: var(--surface);
     padding: 10px 15px;
@@ -307,18 +447,48 @@ footer {
     border: 1px solid var(--border);
     transition: all 0.2s;
 }
-.episode-card:hover, .episode-card.active {
+
+.episode-card:hover,
+.episode-card.active {
     border-color: var(--primary);
     background: #334155;
     transform: translateY(-2px);
 }
-.ep-num { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-.ep-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px; }
+
+.ep-num {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ep-title {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 4px;
+}
 
 @media (max-width: 768px) {
-    .movie-details { flex-direction: column; }
-    .poster-thumb { width: 140px; margin: 0 auto 20px; }
-    .hero-info h1 { font-size: 2rem; }
-    .nav-container { padding: 0 15px; }
-    nav { gap: 15px; }
+    .movie-details {
+        flex-direction: column;
+    }
+
+    .poster-thumb {
+        width: 140px;
+        margin: 0 auto 20px;
+    }
+
+    .hero-info h1 {
+        font-size: 2rem;
+    }
+
+    .nav-container {
+        padding: 0 15px;
+    }
+
+    nav {
+        gap: 15px;
+    }
 }
