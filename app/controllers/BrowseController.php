@@ -1,10 +1,13 @@
 <?php
 
+require_once '../core/Cache.php';
+
 class BrowseController {
     
-    // Render the HTML Page
     public function page($type) {
         $db = Database::getInstance();
+        // Cache settings? No, settings change rarely but we want instant Admin updates. 
+        // We could cache them too but let's stick to heavy API calls first.
         $settings = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
         
         $titleMap = [
@@ -14,7 +17,7 @@ class BrowseController {
         ];
         
         $pageTitle = $titleMap[$type] ?? 'Browse';
-        $category = $type; // passed to JS
+        $category = $type;
         
         ob_start();
         require_once '../app/views/browse.php';
@@ -23,7 +26,6 @@ class BrowseController {
         require_once '../app/views/layout.php';
     }
 
-    // JSON API for Infinite Scroll
     public function api() {
         $type = $_GET['type'] ?? 'movie';
         $page = $_GET['page'] ?? 1;
@@ -35,15 +37,21 @@ class BrowseController {
             $endpoint = '/discover/tv?with_keywords=210024';
         }
 
-        $url = TMDB_BASE_URL . $endpoint . (strpos($endpoint, '?') ? '&' : '?') . 'api_key=' . TMDB_API_KEY . "&page=$page";
-        
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $response = curl_exec($ch);
-        curl_close($ch);
-        
+        // Full URL for fetching, but for Caching Key we can just use the unique params
+        $cacheKey = "browse_{$type}_{$page}";
+        $apiUrl = TMDB_BASE_URL . $endpoint . (strpos($endpoint, '?') ? '&' : '?') . 'api_key=' . TMDB_API_KEY . "&page=$page";
+
+        // Use Cache Wrapper
+        $data = Cache::remember($cacheKey, function() use ($apiUrl) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $apiUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            $res = curl_exec($ch);
+            curl_close($ch);
+            return json_decode($res, true);
+        }, 43200); // Cache for 12 hours
+
         header('Content-Type: application/json');
-        echo $response;
+        echo json_encode($data);
     }
 }

@@ -1,0 +1,8 @@
+-- v2.1.0 Cache System
+CREATE TABLE IF NOT EXISTS api_cache (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    endpoint_hash VARCHAR(64) NOT NULL UNIQUE,
+    data LONGTEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NULL
+);
