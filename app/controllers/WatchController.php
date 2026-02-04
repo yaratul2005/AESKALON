@@ -48,10 +48,10 @@ class WatchController {
         require_once '../app/views/watch.php';
         $content = ob_get_clean();
 
-        // SEO Data
-        $pageTitle = "Watch " . ($content['title'] ?? $content['name']) . " - Great10";
-        $pageDesc = mb_substr($content['overview'] ?? 'Watch this amazing title on Great10.', 0, 160) . '...';
-        $pageImage = "https://image.tmdb.org/t/p/w780" . ($content['backdrop_path'] ?? $content['poster_path']);
+        // SEO Data (Use $movie array, not $content string)
+        $pageTitle = "Watch " . ($movie['title'] ?? $movie['name']) . " - Great10";
+        $pageDesc = mb_substr($movie['overview'] ?? 'Watch this amazing title on Great10.', 0, 160) . '...';
+        $pageImage = "https://image.tmdb.org/t/p/w780" . ($movie['backdrop_path'] ?? $movie['poster_path']);
 
         require_once '../app/views/layout.php';
     }
