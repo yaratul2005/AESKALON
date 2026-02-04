@@ -22,19 +22,21 @@ class Router {
             if ($route['method'] === $method && preg_match('#^' . $route['pattern'] . '$#', $url, $matches)) {
                 array_shift($matches); // Remove full match
                 
-                require_once '../app/controllers/' . $route['controller'] . '.php';
-                $controllerName = $route['controller'];
-                $controller = new $controllerName();
-                
-                // Merge static args (e.g., 'movie') with Regex params (e.g., ID)
-                // If staticArgs are present, they come FIRST in this design or LAST?
-                // Let's pass staticArgs first, then regex matches.
-                // Re-thinking: Usually logic is specific. For '/movies', no regex args.
-                // For '/watch/123', regex args.
-                
-                $args = array_merge($route['staticArgs'], $matches);
-                
-                call_user_func_array([$controller, $route['action']], $args);
+                try {
+                    require_once '../app/controllers/' . $route['controller'] . '.php';
+                    $controllerName = $route['controller'];
+                    $controller = new $controllerName();
+                    
+                    $args = array_merge($route['staticArgs'], $matches);
+                    
+                    call_user_func_array([$controller, $route['action']], $args);
+                } catch (Throwable $e) {
+                    echo "<div style='background:#f87171;color:white;padding:20px;text-align:center;'>";
+                    echo "<h1>System Error</h1>";
+                    echo "<p>" . htmlspecialchars($e->getMessage()) . "</p>";
+                    echo "<p>File: " . $e->getFile() . " Line: " . $e->getLine() . "</p>";
+                    echo "</div>";
+                }
                 return;
             }
         }

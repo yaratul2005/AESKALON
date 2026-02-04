@@ -1,9 +1,5 @@
 <?php
 
- 
-// Actually, earlier files used `require_once '../core/SMTP.php'` and `new SMTP(...)` without namespace. 
-// I will stick to the existing pattern.
-
 require_once '../core/SMTP.php';
 require_once '../core/GoogleAuth.php';
 
@@ -79,6 +75,10 @@ class AuthController {
             }
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_username'] = $user['username'];
+            
+            // Populate/Refresh avatar
+            $_SESSION['user_avatar'] = $user['avatar'] ?? 'https://ui-avatars.com/api/?name='.$user['username'].'&background=random';
+            
             header('Location: /dashboard');
         } else {
             $_SESSION['error'] = "Invalid email or password.";
@@ -116,14 +116,12 @@ class AuthController {
         }
 
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        // Generate a random nice username or keep the temp one? 
-        // User requested: "a random username will be given", rest edited in dashboard.
-        // We already gave a random temp one. We'll set Verified = 1.
         
         $db->query("UPDATE users SET password_hash = ?, is_verified = 1, verify_token = NULL WHERE id = ?", [$hash, $user['id']]);
         
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_username'] = $user['username'];
+        $_SESSION['user_avatar'] = $user['avatar'] ?? 'https://ui-avatars.com/api/?name='.$user['username'].'&background=random';
         
         header('Location: /dashboard');
     }
@@ -133,10 +131,9 @@ class AuthController {
         $db = Database::getInstance();
         $s = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
         
-        // Dynamic Redirect URI logic similar to Admin
+        // Dynamic Redirect URI
         $redirectUri = $s['google_redirect_uri'] ?? '';
         if (empty($redirectUri)) {
-            // Fallback dynamic generation if not set in DB
              $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
              $redirectUri = $protocol . $_SERVER['HTTP_HOST'] . '/auth/google/callback';
         }
@@ -153,7 +150,6 @@ class AuthController {
         $s = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
         
         $redirectUri = $s['google_redirect_uri'] ?? '';
-        // Same fallback check
         if (empty($redirectUri)) {
              $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
              $redirectUri = $protocol . $_SERVER['HTTP_HOST'] . '/auth/google/callback';
@@ -165,6 +161,8 @@ class AuthController {
         if (isset($token['error'])) die("Google Login Failed: " . json_encode($token));
         
         $info = $g->getUserInfo($token['access_token']);
+        if (!$info) die("Failed to get Google User Info.");
+
         $email = $info['email'];
         $googleId = $info['id'];
         $avatar = $info['picture'] ?? '';
@@ -173,14 +171,16 @@ class AuthController {
         $user = $db->query("SELECT * FROM users WHERE email = ?", [$email])->fetch();
         
         if ($user) {
-            // Update Google ID if missing
             if (!$user['google_id']) {
                 $db->query("UPDATE users SET google_id = ?, avatar = COALESCE(avatar, ?) WHERE id = ?", [$googleId, $avatar, $user['id']]);
+                // Refresh local user data with new avatar if needed? 
+                // We'll just fetch again or assume updated.
+                $user['avatar'] = $user['avatar'] ?: $avatar;
             }
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_username'] = $user['username'];
+            $_SESSION['user_avatar'] = $user['avatar'] ?? 'https://ui-avatars.com/api/?name='.$user['username'].'&background=random';
         } else {
-            // Register New Google User
             $username = 'user_' . substr(md5(uniqid()), 0, 8);
             $db->query("INSERT INTO users (username, email, google_id, avatar, is_verified, password_hash) VALUES (?, ?, ?, ?, 1, '')", 
                 [$username, $email, $googleId, $avatar]);
@@ -188,6 +188,7 @@ class AuthController {
             $id = $db->getPdo()->lastInsertId();
             $_SESSION['user_id'] = $id;
             $_SESSION['user_username'] = $username;
+            $_SESSION['user_avatar'] = $avatar;
         }
         
         header('Location: /dashboard');
@@ -200,7 +201,6 @@ class AuthController {
         
         $smtp = new SMTP($s['smtp_host'], $s['smtp_port'], $s['smtp_user'], $s['smtp_pass']);
         
-        // Determine dynamic Verification URL
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
         $link = $protocol . $_SERVER['HTTP_HOST'] . "/verify/$token";
 
