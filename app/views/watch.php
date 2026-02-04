@@ -238,14 +238,3 @@
         }
     }
 </script>
-        
-        if (data.error) alert(data.error);
-        else {
-            if (parentId) document.getElementById(`reply-input-${parentId}`).value = '';
-            else document.getElementById('commentBox').value = '';
-            loadComments();
-        }
-    }
-
-    loadComments();
-</script>
