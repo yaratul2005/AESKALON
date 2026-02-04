@@ -124,23 +124,53 @@ class AdminController {
         $db = Database::getInstance();
         $updateFiles = glob('../updates/*.sql');
         sort($updateFiles);
+        
+        // Ensure app_version table exists
+        $db->query("CREATE TABLE IF NOT EXISTS app_version (version VARCHAR(255) PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+        
         $stmtVer = $db->query("SELECT version FROM app_version");
         $appliedVersions = $stmtVer->fetchAll(PDO::FETCH_COLUMN);
         
         $count = 0;
+        $errors = [];
+        
         foreach ($updateFiles as $file) {
             $filename = basename($file);
             if (!in_array($filename, $appliedVersions)) {
-                // Use simple split for now, assuming updates are simple
-                $sql = file_get_contents($file);
+                $sqlContent = file_get_contents($file);
+                
+                // robust split (borrowed from install.php logic)
+                $queries = preg_split('/;\s*[\r\n]+/', $sqlContent);
+                $success = true;
+
                 try {
-                    $db->getPdo()->exec($sql);
+                    $pdo = $db->getPdo();
+                    $pdo->beginTransaction();
+                    
+                    foreach ($queries as $query) {
+                        $query = trim($query);
+                        if (!empty($query)) {
+                            $pdo->exec($query);
+                        }
+                    }
+                    
                     $db->query("INSERT INTO app_version (version) VALUES (?)", [$filename]);
+                    $pdo->commit();
                     $count++;
-                } catch (Exception $e) { /* Log error */ }
+                } catch (Exception $e) {
+                    $pdo->rollBack();
+                    $success = false;
+                    $errors[] = "Error in $filename: " . $e->getMessage();
+                }
             }
         }
-        $_SESSION['success'] = "$count updates applied.";
+        
+        if (!empty($errors)) {
+            $_SESSION['error'] = implode('<br>', $errors);
+        } else {
+            $_SESSION['success'] = "$count updates applied.";
+        }
+        
         header('Location: /admin/dashboard');
     }
     
