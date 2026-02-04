@@ -10,6 +10,13 @@ class UserController {
         
         // Fetch User Info
         $user = $db->query("SELECT * FROM users WHERE id = ?", [$userId])->fetch();
+
+        if (!$user) {
+            // Invalid session or deleted user
+            session_destroy();
+            header('Location: /login');
+            exit;
+        }
         
         // Fetch Watch History
         $history = $db->query(
