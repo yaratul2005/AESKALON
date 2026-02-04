@@ -1,27 +1,4 @@
-<style>
-    .episode-scroller {
-        display: flex;
-        overflow-x: auto;
-        gap: 10px;
-        padding: 10px 0;
-        margin-top: 10px;
-    }
-    .episode-card {
-        min-width: 140px;
-        background: #1e293b;
-        border-radius: 8px;
-        padding: 10px;
-        cursor: pointer;
-        border: 1px solid transparent;
-        transition: all 0.2s;
-    }
-    .episode-card:hover, .episode-card.active {
-        border-color: var(--primary);
-        background: #334155;
-    }
-    .ep-num { font-size: 0.8rem; color: var(--text-muted); }
-    .ep-title { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-</style>
+
 
 <div class="player-container animate-fade-in">
     <!-- VidLink Player -->
