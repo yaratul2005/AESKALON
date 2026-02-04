@@ -53,51 +53,6 @@
     </div>
 
     <!-- Comments Section -->
-    <div class="container" style="margin-top: 50px; padding-top: 30px; border-top: 1px solid var(--border);">
-        <h3>Comments</h3>
-        
-        <?php if(isset($_SESSION['user_id'])): ?>
-            <div style="margin-bottom: 30px; display: flex; gap: 15px;">
-                <img src="<?= $_SESSION['user_avatar'] ?? 'https://ui-avatars.com/api/?name='.$_SESSION['user_username'].'&background=random' ?>" style="width: 40px; height: 40px; border-radius: 50%;">
-                <div style="flex: 1;">
-                    <textarea id="commentBox" placeholder="Write a comment..." style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 10px; color: white; border-radius: 8px; min-height: 80px;"></textarea>
-                    <div style="text-align: right; margin-top: 10px;">
-                        <button onclick="postComment()" class="btn" style="font-size: 0.9rem;">Post Comment</button>
-                    </div>
-                </div>
-            </div>
-        <?php else: ?>
-            <p style="margin-bottom: 30px;"><a href="/login" style="color: var(--primary);">Login</a> to post comments.</p>
-        <?php endif; ?>
-
-        <div id="commentsList"></div>
-    </div>
-</div>
-
-<script>
-    const TMDB_ID = '<?= $id ?>';
-    const TYPE = '<?= $type ?>';
-    
-    // Watch Later Logic
-    document.getElementById('btnWatchLater').addEventListener('click', async () => {
-             const res = await fetch('/api/watch-later', {
-                 method: 'POST',
-                 body: JSON.stringify({ id: TMDB_ID, type: TYPE })
-             });
-             const data = await res.json();
-             if (data.error) window.location.href = '/login';
-             else if (data.status === 'added') alert('Added to Watch Later');
-             else alert('Removed from Watch Later');
-    });
-
-    // Add to History automatically
-    setTimeout(() => {
-             fetch('/api/history', { method: 'POST', body: JSON.stringify({ id: TMDB_ID, type: TYPE }) });
-    }, 10000); 
-
-    // Comments System
-    async function loadComments() {
-    <!-- Comments Section -->
     <div class="comments-container">
         <h3 style="margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
             Comments <span id="commentCount" class="badge" style="margin: 0; background: var(--surface); color: var(--text);">0</span>
@@ -118,17 +73,34 @@
         <?php endif; ?>
 
         <div id="commentsList">
-            <!-- Populated via JS -->
             <div class="loader" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading comments...</div>
         </div>
     </div>
 </div>
 
 <script>
-    const TMDB_ID = <?= json_encode($id) ?>;
-    const TYPE = <?= json_encode($type) ?>;
+    const TMDB_ID = '<?= $id ?>';
+    const TYPE = '<?= $type ?>';
     const USER_LOGGED_IN = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+    
+    // Watch Later Logic
+    document.getElementById('btnWatchLater').addEventListener('click', async () => {
+             const res = await fetch('/api/watch-later', {
+                 method: 'POST',
+                 body: JSON.stringify({ id: TMDB_ID, type: TYPE })
+             });
+             const data = await res.json();
+             if (data.error) window.location.href = '/login';
+             else if (data.status === 'added') alert('Added to Watch Later');
+             else alert('Removed from Watch Later');
+    });
 
+    // Add to History automatically
+    setTimeout(() => {
+             fetch('/api/history', { method: 'POST', body: JSON.stringify({ id: TMDB_ID, type: TYPE }) });
+    }, 10000); 
+
+    // Comments System
     document.addEventListener('DOMContentLoaded', loadComments);
 
     async function loadComments() {
