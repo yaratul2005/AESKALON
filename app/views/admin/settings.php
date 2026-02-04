@@ -6,12 +6,20 @@
         <div class="tab" data-target="auth">Google Auth</div>
     </div>
 
-    <form action="/admin/update" method="POST">
+    <form action="/admin/update" method="POST" enctype="multipart/form-data">
         
         <!-- General -->
         <div id="general" class="tab-content active">
             <label>Site Name</label>
             <input type="text" name="site_name" value="<?= htmlspecialchars($settings['site_name'] ?? '') ?>">
+            
+            <label>Favicon / Site Icon</label>
+            <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;">
+                <?php if(!empty($settings['site_favicon'])): ?>
+                    <img src="<?= htmlspecialchars($settings['site_favicon']) ?>" style="width: 32px; height: 32px; border-radius: 4px; border: 1px solid var(--border);">
+                <?php endif; ?>
+                <input type="file" name="site_favicon" accept="image/png, image/jpeg, image/x-icon, image/svg+xml">
+            </div>
         </div>
 
         <!-- SEO -->

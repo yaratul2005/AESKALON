@@ -27,6 +27,7 @@
     
     <!-- Core Styles -->
     <link rel="stylesheet" href="/assets/style.css">
+    <link rel="icon" href="<?= htmlspecialchars($settings['site_favicon'] ?? '/assets/favicon.ico') ?>">
     
     <!-- Dynamic Header Code -->
     <?= $settings['site_header_code'] ?? '' ?>

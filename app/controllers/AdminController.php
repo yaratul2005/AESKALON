@@ -110,6 +110,21 @@ class AdminController {
         if (!$this->isAuthenticated()) exit("Unauthorized");
         $db = Database::getInstance();
         
+        // Handle Favicon Upload
+        if (isset($_FILES['site_favicon']) && $_FILES['site_favicon']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = '../public/assets/uploads/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+            
+            $ext = pathinfo($_FILES['site_favicon']['name'], PATHINFO_EXTENSION);
+            $filename = 'favicon_' . time() . '.' . $ext;
+            $targetPath = $uploadDir . $filename;
+            
+            if (move_uploaded_file($_FILES['site_favicon']['tmp_name'], $targetPath)) {
+                $publicPath = '/assets/uploads/' . $filename;
+                $db->query("INSERT INTO settings (setting_key, setting_value) VALUES ('site_favicon', ?) ON DUPLICATE KEY UPDATE setting_value = ?", [$publicPath, $publicPath]);
+            }
+        }
+        
         foreach ($_POST as $key => $value) {
             if ($key !== 'action') { // Skip action param if exists
                 $db->query("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?", [$key, $value, $value]);
