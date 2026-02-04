@@ -1,6 +1,12 @@
 <?php
 
 class WatchController {
+
+    public function __construct() {
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+    }
     
     private function fetchTMDB($endpoint) {
         $url = TMDB_BASE_URL . $endpoint . (strpos($endpoint, '?') ? '&' : '?') . 'api_key=' . TMDB_API_KEY;
