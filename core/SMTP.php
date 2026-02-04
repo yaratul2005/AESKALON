@@ -23,11 +23,18 @@ class SMTP {
     }
 
     public function send($to, $subject, $body, $fromEmail, $fromName) {
-        $socket = fsockopen($this->host, $this->port, $errno, $errstr, 10);
+        $host = $this->host;
+        if ($this->port == 465 && strpos($host, 'ssl://') === false) {
+            $host = 'ssl://' . $host;
+        }
+
+        $socket = fsockopen($host, $this->port, $errno, $errstr, 5); // 5s connection timeout
         if (!$socket) {
             $this->log("Error: $errno - $errstr");
             return false;
         }
+        
+        stream_set_timeout($socket, 5); // 5s read timeout
 
         $this->read($socket); // Initial greeting
 
@@ -51,9 +58,12 @@ class SMTP {
         $headers .= "Content-type: text/html; charset=utf-8\r\n";
         $headers .= "To: $to\r\n";
         $headers .= "From: $fromName <$fromEmail>\r\n";
+        $headers .= "Reply-To: $fromEmail\r\n";
         $headers .= "Subject: $subject\r\n";
+        $headers .= "Date: " . date("r") . "\r\n";
+        $headers .= "X-Mailer: PHP/" . phpversion();
 
-        fwrite($socket, "$headers\r\n$body\r\n.\r\n");
+        fwrite($socket, "$headers\r\n\r\n$body\r\n.\r\n");
         $this->read($socket); // Expect 250 OK
 
         $this->cmd($socket, "QUIT");
@@ -65,7 +75,6 @@ class SMTP {
     private function cmd($socket, $command) {
         fwrite($socket, $command . "\r\n");
         $response = $this->read($socket);
-        // Basic check: 2xx or 3xx usually means success
         $code = substr($response, 0, 3);
         if ($code >= 200 && $code < 400) {
             return true;
@@ -79,6 +88,13 @@ class SMTP {
         while ($str = fgets($socket, 515)) {
             $response .= $str;
             if (substr($str, 3, 1) == " ") break;
+            
+            // Safety break for timeouts/meta
+            $info = stream_get_meta_data($socket);
+            if ($info['timed_out']) {
+                $this->log("Timeout reading from SMTP");
+                break;
+            }
         }
         return $response;
     }
