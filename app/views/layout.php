@@ -22,42 +22,63 @@
 
 <header>
     <div class="nav-container">
+        <button class="hamburger" onclick="document.querySelector('nav').classList.toggle('active')">☰</button>
+        
         <a href="/" class="logo"><?= htmlspecialchars($settings['site_name'] ?? 'Great10') ?></a>
+        
         <nav>
+            <div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 20px;" class="desktop-hidden">
+                <button onclick="document.querySelector('nav').classList.remove('active')" style="background:none; border:none; color:white; font-size:1.5rem;">✕</button>
+            </div>
             <a href="/">Home</a>
             <a href="/movies">Movies</a>
             <a href="/series">Series</a>
             <a href="/anime">Anime</a>
         </nav>
         
-        <div class="search-container">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" class="search-input" placeholder="Search..." id="searchInput">
-            <div class="search-results" id="searchResults"></div>
-        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="search-container" id="searchContainer">
+                <svg class="search-icon" onclick="toggleMobileSearch()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" class="search-input" placeholder="Search..." id="searchInput">
+                <div class="search-results" id="searchResults"></div>
+            </div>
 
-        <?php if(isset($_SESSION['user_id'])): ?>
-            <div class="user-menu" style="position: relative; margin-left: 20px;">
-                <button onclick="document.getElementById('userDropdown').classList.toggle('active')" style="background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; gap: 10px;">
-                    <img src="<?= $_SESSION['user_avatar'] ?? 'https://ui-avatars.com/api/?name='.$_SESSION['user_username'].'&background=random' ?>" style="width: 32px; height: 32px; border-radius: 50%;">
-                </button>
-                <div id="userDropdown" style="position: absolute; right: 0; top: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; width: 150px; display: none; margin-top: 10px;">
-                    <a href="/dashboard" style="display: block; padding: 10px; color: var(--text); text-decoration: none;">Dashboard</a>
-                    <a href="/logout" style="display: block; padding: 10px; color: #f87171; text-decoration: none; border-top: 1px solid var(--border);">Logout</a>
+            <?php if(isset($_SESSION['user_id'])): ?>
+                <div class="user-menu" style="position: relative;">
+                    <button onclick="document.getElementById('userDropdown').classList.toggle('active')" style="background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                        <img src="<?= $_SESSION['user_avatar'] ?? 'https://ui-avatars.com/api/?name='.$_SESSION['user_username'].'&background=random' ?>" style="width: 32px; height: 32px; border-radius: 50%;">
+                    </button>
+                    <div id="userDropdown" style="position: absolute; right: 0; top: 120%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; width: 150px; display: none; z-index: 2002; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                        <a href="/dashboard" style="display: block; padding: 12px; color: var(--text); text-decoration: none; font-size: 0.9rem;">Dashboard</a>
+                        <a href="/logout" style="display: block; padding: 12px; color: #f87171; text-decoration: none; border-top: 1px solid var(--border); font-size: 0.9rem;">Logout</a>
+                    </div>
                 </div>
-            </div>
-            <style> #userDropdown.active { display: block !important; } </style>
-        <?php else: ?>
-            <div style="margin-left: 20px; display: flex; gap: 10px;">
-                <a href="/login" style="color: var(--text); text-decoration: none; font-weight: 600;">Login</a>
-                <a href="/register" class="btn" style="padding: 5px 15px; font-size: 0.9rem;">Sign Up</a>
-            </div>
-        <?php endif; ?>
-
+                <style> #userDropdown.active { display: block !important; } </style>
+            <?php else: ?>
+                <div style="display: flex; gap: 10px;" class="auth-buttons">
+                    <a href="/login" style="color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.9rem;">Login</a>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 </header>
+<style>
+    @media (min-width: 769px) { .desktop-hidden { display: none !important; } }
+    @media (max-width: 768px) { .auth-buttons a { font-size: 0.8rem; } }
+</style>
 <script>
     const searchInput = document.getElementById('searchInput');
+    const searchContainer = document.getElementById('searchContainer');
+    
+    function toggleMobileSearch() {
+        if (window.innerWidth <= 768) {
+            searchContainer.classList.toggle('mobile-active');
+            if (searchContainer.classList.contains('mobile-active')) {
+                searchInput.focus();
+            }
+        }
+    }
+
     const searchResults = document.getElementById('searchResults');
     let debounceTimer;
 

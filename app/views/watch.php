@@ -37,16 +37,16 @@
         </div>
     <?php endif; ?>
 
-    <div class="movie-details" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+    <div class="movie-details">
         <div style="display: flex; gap: 20px; flex: 1;">
-            <img src="https://image.tmdb.org/t/p/w200<?= $movie['poster_path'] ?>" class="poster-thumb" style="width: 150px; border-radius: 8px;">
+            <img src="https://image.tmdb.org/t/p/w200<?= $movie['poster_path'] ?>" class="poster-thumb">
             <div class="meta-info">
                 <h1><?= htmlspecialchars($title) ?></h1>
-                <p class="overview" style="margin-top: 10px; line-height: 1.6; color: #cbd5e1;"><?= htmlspecialchars($movie['overview']) ?></p>
+                <p class="overview"><?= htmlspecialchars($movie['overview']) ?></p>
             </div>
         </div>
         <div>
-           <button id="btnWatchLater" class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border); white-space: nowrap;">
+           <button id="btnWatchLater" class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border); padding: 10px 20px;">
                 + Watch Later
             </button>
         </div>

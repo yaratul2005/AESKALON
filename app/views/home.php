@@ -25,7 +25,7 @@
 <!-- Trending Movies -->
 <div class="section-header">
     <h2 class="section-title"><span>Trending Movies</span></h2>
-    <a href="/movies" style="color: var(--primary); font-size: 0.9rem; font-weight: 600;">View All &rarr;</a>
+    <a href="/movies" class="btn-view-all">View All</a>
 </div>
 <div class="scroller">
     <?php foreach ($trending as $m): ?>
@@ -40,7 +40,7 @@
 <!-- Series -->
 <div class="section-header">
     <h2 class="section-title"><span>Popular Series</span></h2>
-    <a href="/series" style="color: var(--primary); font-size: 0.9rem; font-weight: 600;">View All &rarr;</a>
+    <a href="/series" class="btn-view-all">View All</a>
 </div>
 <div class="scroller">
     <?php foreach ($series as $s): ?>
@@ -55,7 +55,7 @@
 <!-- Anime -->
 <div class="section-header">
     <h2 class="section-title"><span>Anime</span></h2>
-    <a href="/anime" style="color: var(--primary); font-size: 0.9rem; font-weight: 600;">View All &rarr;</a>
+    <a href="/anime" class="btn-view-all">View All</a>
 </div>
 <div class="scroller">
     <?php foreach ($anime as $a): ?>

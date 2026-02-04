@@ -145,6 +145,22 @@ header {
     background: rgba(255, 255, 255, 0.05);
 }
 
+/* Mobile Search Toggle State */
+.search-container.mobile-active .search-input {
+    display: block;
+    position: absolute;
+    top: 60px;
+    left: -20px;
+    right: -20px;
+    width: calc(100vw - 40px);
+    z-index: 1001;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+}
+
+
 .search-item img {
     width: 40px;
     height: 60px;
@@ -173,6 +189,37 @@ nav {
     display: flex;
     gap: 20px;
 }
+
+/* Hamburger */
+.hamburger {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 2001;
+}
+
+/* View All Button */
+.btn-view-all {
+    color: var(--primary);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 16px;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 20px;
+    transition: all 0.3s;
+}
+
+.btn-view-all:hover {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: var(--primary);
+    transform: translateX(5px);
+}
+
 
 nav a {
     color: var(--text);
@@ -471,24 +518,102 @@ footer {
 }
 
 @media (max-width: 768px) {
-    .movie-details {
-        flex-direction: column;
-    }
-
-    .poster-thumb {
-        width: 140px;
-        margin: 0 auto 20px;
-    }
-
-    .hero-info h1 {
-        font-size: 2rem;
-    }
-
     .nav-container {
         padding: 0 15px;
     }
 
+    /* Mobile Nav */
+    .hamburger {
+        display: block;
+    }
+
     nav {
-        gap: 15px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 250px;
+        background: var(--surface);
+        flex-direction: column;
+        padding: 80px 20px;
+        gap: 20px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        border-right: 1px solid var(--border);
+    }
+
+    nav.active {
+        transform: translateX(0);
+    }
+
+    /* Mobile Search */
+    .search-container {
+        width: auto;
+        position: static;
+    }
+
+    .search-input {
+        display: none;
+        /* Hidden by default on mobile, toggled */
+    }
+
+    .search-icon {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        pointer-events: auto;
+        cursor: pointer;
+        padding: 10px;
+    }
+
+    /* Hero */
+    .hero-info h1 {
+        font-size: 2rem;
+    }
+
+    .hero-advanced {
+        height: 50vh;
+        min-height: 400px;
+    }
+
+    /* Watch Page Layout */
+    .movie-details {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem;
+    }
+
+    .movie-details>div:first-child {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .poster-thumb {
+        width: 160px;
+        margin-bottom: 15px;
+    }
+
+    .meta-info h1 {
+        font-size: 1.8rem;
+    }
+
+    .iframe-wrapper {
+        border-radius: 0;
+        /* Full width feel */
+        margin: 0 -20px;
+    }
+
+    .player-container {
+        padding: 0;
+    }
+
+    /* Fix Watch Later Button mobile */
+    #btnWatchLater {
+        width: 100%;
+        margin-top: 15px;
+        justify-content: center;
     }
 }
