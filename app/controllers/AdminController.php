@@ -158,7 +158,9 @@ class AdminController {
                     $pdo->commit();
                     $count++;
                 } catch (Exception $e) {
-                    $pdo->rollBack();
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
                     $success = false;
                     $errors[] = "Error in $filename: " . $e->getMessage();
                 }
