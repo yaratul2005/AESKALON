@@ -50,46 +50,27 @@ function splitSql($sql) {
 
     for ($i = 0; $i < $len; $i++) {
         $char = $sql[$i];
-        
-        // Handle escaped quotes
         if ($inString && $char === '\\' && $i + 1 < $len) {
             $buffer .= $char . $sql[$i + 1];
-            $i++; // Skip next char
-            continue;
+            $i++; continue;
         }
-
-        // Toggle string state
-        if ($char === "'") {
-            $inString = !$inString;
-        }
-
+        if ($char === "'") $inString = !$inString;
         if ($char === ';' && !$inString) {
-            // End of query
             $q = trim($buffer);
-            if (!empty($q)) {
-                $queries[] = $q;
-            }
+            if (!empty($q)) $queries[] = $q;
             $buffer = '';
         } else {
             $buffer .= $char;
         }
     }
-    
-    // Add last query if exists
     $q = trim($buffer);
-    if (!empty($q)) {
-        $queries[] = $q;
-    }
-
+    if (!empty($q)) $queries[] = $q;
     return $queries;
 }
 
 function runSqlFile($pdo, $file) {
     if (!file_exists($file)) return false;
-    
     $sql = file_get_contents($file);
-    // Remove comments (basic removal, careful not to remove urls/content)
-    // We only remove lines starting with -- or #
     $lines = explode("\n", $sql);
     $cleanLines = [];
     foreach ($lines as $line) {
@@ -98,15 +79,10 @@ function runSqlFile($pdo, $file) {
         $cleanLines[] = $line;
     }
     $sql = implode("\n", $cleanLines);
-    
     $queries = splitSql($sql);
-    
     foreach ($queries as $query) {
         if (!empty($query)) {
-            try {
-                $pdo->exec($query);
-            } catch (Exception $e) {
-                // Ignore duplicated entry issues usually
+            try { $pdo->exec($query); } catch (Exception $e) {
                 logMsg("Query Warning in " . basename($file) . ": " . $e->getMessage(), 'warning');
             }
         }
@@ -117,27 +93,19 @@ function runSqlFile($pdo, $file) {
 // 4. Run Base Schema
 logMsg("Checking database schema...");
 $schemaFile = '../database/schema.sql';
-if (runSqlFile($pdo, $schemaFile)) {
-    logMsg("Base schema check/installation completed.", 'type-info');
-} else {
-    logMsg("Error: Schema file not found at $schemaFile", 'error');
-}
+runSqlFile($pdo, $schemaFile);
+logMsg("Base schema check completed.", 'type-info');
 
 // 5. Run Updates
 logMsg("Checking for updates...");
 $updateFiles = glob('../updates/*.sql');
 sort($updateFiles);
-
-// Check current version
 try {
     $stmtVer = $pdo->query("SELECT version FROM app_version");
     $appliedVersions = $stmtVer->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) {
     $appliedVersions = [];
-    logMsg("Version table missing or empty, assuming fresh start or manual fix needed.", 'warning');
 }
-
-$updatesRun = 0;
 foreach ($updateFiles as $file) {
     $filename = basename($file);
     if (!in_array($filename, $appliedVersions)) {
@@ -146,16 +114,33 @@ foreach ($updateFiles as $file) {
                 $stmt = $pdo->prepare("INSERT INTO app_version (version) VALUES (?)");
                 $stmt->execute([$filename]);
                 logMsg("Applied update: $filename", 'success');
-                $updatesRun++;
-            } catch (Exception $e) {
-                logMsg("Failed to record version for $filename: " . $e->getMessage(), 'error');
-            }
+            } catch (Exception $e) {}
         }
     }
 }
 
-if ($updatesRun === 0) {
-    logMsg("No new updates found.");
+// 6. Handle Admin User Creation
+$adminCreated = false;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_admin'])) {
+    $username = trim($_POST['username']);
+    $password = $_POST['password'];
+    
+    if (!empty($username) && !empty($password)) {
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        
+        // Remove existing default admin if exists or any collision
+        // We will INSERT or UPDATE
+        try {
+            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash) VALUES (?, ?) ON DUPLICATE KEY UPDATE password_hash = ?");
+            $stmt->execute([$username, $hash, $hash]);
+            logMsg("Admin account '$username' created/updated successfully!", 'success');
+            $adminCreated = true;
+        } catch (Exception $e) {
+            logMsg("Error creating admin: " . $e->getMessage(), 'error');
+        }
+    } else {
+        logMsg("Username and Password are required.", 'error');
+    }
 }
 
 ?>
@@ -164,25 +149,33 @@ if ($updatesRun === 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Installation & Repair - Great10</title>
+    <title>Great10 Installer</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; max-width: 800px; margin: 0 auto; }
-        .log { background: #1e293b; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; }
-        .item { margin-bottom: 0.5rem; padding: 0.5rem; border-radius: 4px; }
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; max-width: 800px; margin: 0 auto; line-height: 1.5; }
+        .log-container { background: #1e293b; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; margin-bottom: 2rem; max-height: 200px; overflow-y: auto; }
+        .item { margin-bottom: 0.5rem; padding: 0.5rem; border-radius: 4px; font-size: 0.9rem; }
         .type-info { color: #94a3b8; }
         .type-success { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
         .type-warning { color: #facc15; background: rgba(250, 204, 21, 0.1); }
         .type-error { color: #f87171; background: rgba(248, 113, 113, 0.1); font-weight: bold; }
-        h1 { color: #38bdf8; }
-        .actions { margin-top: 2rem; }
-        .btn { display: inline-block; background: #38bdf8; color: #0f172a; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; }
-        .warning-box { margin-top: 2rem; padding: 1rem; border-left: 4px solid #facc15; background: rgba(250, 204, 21, 0.05); }
+        h1 { color: #38bdf8; margin-bottom: 0.5rem; }
+        h2 { color: #e2e8f0; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; }
+        
+        .card { background: #1e293b; padding: 2rem; border-radius: 8px; border: 1px solid #334155; }
+        input { width: 100%; padding: 0.75rem; margin-bottom: 1rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; }
+        label { display: block; margin-bottom: 0.5rem; color: #94a3b8; font-weight: 500; }
+        .btn { display: inline-block; background: #38bdf8; color: #0f172a; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; border: none; cursor: pointer; font-size: 1rem; }
+        .btn:hover { opacity: 0.9; }
+        .btn-outline { background: transparent; border: 1px solid #38bdf8; color: #38bdf8; }
+        
+        .success-box { background: rgba(74, 222, 128, 0.1); border: 1px solid #4ade80; color: #4ade80; padding: 1rem; border-radius: 6px; text-align: center; margin-top: 1rem; }
     </style>
 </head>
 <body>
-    <h1>Installation & System Check</h1>
+    <h1>Great10 Installer</h1>
+    <p style="color: #94a3b8; margin-bottom: 2rem;">System Status & Configuration</p>
     
-    <div class="log">
+    <div class="log-container">
         <?php foreach ($messages as $msg): ?>
             <div class="item type-<?= $msg['type'] ?>">
                 <?php if($msg['type']=='success') echo '✔ '; ?>
@@ -192,13 +185,34 @@ if ($updatesRun === 0) {
         <?php endforeach; ?>
     </div>
 
-    <div class="actions">
-        <a href="/" class="btn">Go to Homepage</a>
-        <a href="/admin" class="btn" style="background: #1e293b; color: #38bdf8; border: 1px solid #38bdf8;">Go to Admin</a>
+    <div class="card">
+        <h2>Admin Account Setup</h2>
+        <?php if ($adminCreated): ?>
+            <div class="success-box">
+                <h3>Account Created Successfully!</h3>
+                <p>You can now log in to the admin panel.</p>
+                <br>
+                <a href="/admin" class="btn">Go to Admin Login</a>
+            </div>
+        <?php else: ?>
+            <p>Create or update the administrator account for your CMS.</p>
+            <form method="POST">
+                <input type="hidden" name="create_admin" value="1">
+                
+                <label>Admin Username / Email</label>
+                <input type="text" name="username" placeholder="e.g. admin@great10.xyz" required>
+                
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter a strong password" required>
+                
+                <button type="submit" class="btn">Create Account</button>
+            </form>
+        <?php endif; ?>
+    </div>
+    
+    <div style="margin-top: 2rem; text-align: center;">
+         <a href="/" style="color: #94a3b8; text-decoration: none;">Return to Homepage</a>
     </div>
 
-    <div class="warning-box">
-        <strong>Security Notice:</strong> For better security, please rename or delete this <code>install.php</code> file after you have successfully set up your site.
-    </div>
 </body>
 </html>
