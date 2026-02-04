@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    Options -MultiViews
+    RewriteEngine On
+    RewriteBase /
+
+    # Redirect to public/ directory if not already there
+    # This captures requests to the root and forwards them to public/
+    RewriteCond %{THE_REQUEST} !/public/ [NC]
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
