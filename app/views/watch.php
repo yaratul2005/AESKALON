@@ -97,57 +97,147 @@
 
     // Comments System
     async function loadComments() {
-        const res = await fetch(`/api/comments?id=${TMDB_ID}&type=${TYPE}`);
-        const data = await res.json();
-        const list = document.getElementById('commentsList');
-        list.innerHTML = '';
+    <!-- Comments Section -->
+    <div class="comments-container">
+        <h3 style="margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            Comments <span id="commentCount" class="badge" style="margin: 0; background: var(--surface); color: var(--text);">0</span>
+        </h3>
 
-        data.threads.forEach(t => {
-            const replies = data.replies[t.id] || [];
-            const html = `
-                <div class="comment" style="margin-bottom: 20px;">
-                    <div style="display: flex; gap: 15px;">
-                        <img src="${t.avatar || 'https://ui-avatars.com/api/?name='+t.username+'&background=random'}" style="width: 32px; height: 32px; border-radius: 50%;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; font-size: 0.9rem;">${t.username} <span style="font-weight: 400; color: var(--text-muted); font-size: 0.8rem;">• ${new Date(t.created_at).toLocaleDateString()}</span></div>
-                            <div style="margin-top: 5px; color: #cbd5e1;">${t.body}</div>
-                            <button onclick="toggleReplyBox(${t.id})" style="background: none; border: none; color: var(--text-muted); font-size: 0.8rem; margin-top: 5px; cursor: pointer;">Reply</button>
-                            
-                            <div id="reply-box-${t.id}" style="display: none; margin-top: 10px;">
-                                <input type="text" id="reply-input-${t.id}" placeholder="Reply..." style="width:100%; background: var(--bg); border: 1px solid var(--border); padding: 8px; color: white; border-radius: 4px; margin-bottom: 5px;">
-                                <button onclick="postComment(${t.id})" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Send</button>
+        <?php if(isset($_SESSION['user_id'])): ?>
+            <div class="comment-input-wrapper">
+                <img src="<?= htmlspecialchars($_SESSION['user_avatar'] ?? 'https://ui-avatars.com/api/?name='.$_SESSION['user_username']) ?>" class="comment-avatar">
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                    <textarea id="commentBox" class="comment-box" placeholder="Join the discussion..."></textarea>
+                    <button onclick="postComment()" class="btn-send">Post Comment</button>
+                </div>
+            </div>
+        <?php else: ?>
+            <div style="background: rgba(56, 189, 248, 0.1); padding: 20px; border-radius: 12px; text-align: center; color: var(--primary); margin-bottom: 30px;">
+                <p style="margin: 0;">Please <a href="/login" style="font-weight: 700; text-decoration: underline;">Login</a> to leave a comment.</p>
+            </div>
+        <?php endif; ?>
+
+        <div id="commentsList">
+            <!-- Populated via JS -->
+            <div class="loader" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading comments...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const TMDB_ID = <?= json_encode($id) ?>;
+    const TYPE = <?= json_encode($type) ?>;
+    const USER_LOGGED_IN = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+
+    document.addEventListener('DOMContentLoaded', loadComments);
+
+    async function loadComments() {
+        try {
+            const res = await fetch(`/api/comments?id=${TMDB_ID}&type=${TYPE}`);
+            const data = await res.json();
+            const list = document.getElementById('commentsList');
+            document.getElementById('commentCount').innerText = data.threads.length;
+            list.innerHTML = '';
+
+            if(data.threads.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Be the first to comment!</p>';
+                return;
+            }
+
+            data.threads.forEach(t => {
+                const replies = data.replies[t.id] || [];
+                const html = `
+                    <div class="comment-thread">
+                        <img src="${t.avatar || 'https://ui-avatars.com/api/?name='+t.username+'&background=random'}" class="comment-avatar">
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-author">${t.username}</span>
+                                <span class="comment-date">${new Date(t.created_at).toLocaleDateString()}</span>
                             </div>
+                            <div class="comment-body">${t.body}</div>
+                            
+                            <div class="comment-actions">
+                                <button onclick="toggleReplyBox(${t.id})" class="action-link">Reply</button>
+                            </div>
+
+                            <div id="reply-box-${t.id}" style="display: none; margin-top: 15px; animation: fadeIn 0.3s ease;">
+                                ${USER_LOGGED_IN ? `
+                                    <div style="display: flex; gap: 10px;">
+                                        <input type="text" id="reply-input-${t.id}" class="form-input-premium" placeholder="Write a reply..." style="padding: 10px;">
+                                        <button onclick="postComment(${t.id})" class="btn-send" style="margin: 0; padding: 0 20px;">Send</button>
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            ${replies.length > 0 ? `
+                                <div class="replies-list">
+                                    ${replies.map(r => `
+                                        <div class="comment-thread reply-item">
+                                            <img src="${r.avatar || 'https://ui-avatars.com/api/?name='+r.username}" class="comment-avatar" style="width: 35px; height: 35px;">
+                                            <div class="comment-content">
+                                                <div class="comment-header">
+                                                    <span class="comment-author">${r.username}</span>
+                                                    <span class="comment-date">${new Date(r.created_at).toLocaleDateString()}</span>
+                                                </div>
+                                                <div class="comment-body" style="background: rgba(255,255,255,0.02);">${r.body}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
-                    <!-- Replies -->
-                    <div style="margin-left: 50px; margin-top: 10px; border-left: 2px solid var(--border); padding-left: 15px;">
-                        ${replies.map(r => `
-                            <div style="margin-top: 10px;">
-                                <div style="font-weight: 600; font-size: 0.85rem;">${r.username}</div>
-                                <div style="font-size: 0.9rem; color: #cbd5e1;">${r.body}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-            list.innerHTML += html;
-        });
+                `;
+                list.innerHTML += html;
+            });
+        } catch(e) { console.error(e); }
     }
 
     function toggleReplyBox(id) {
+        if(!USER_LOGGED_IN) {
+            window.location.href = '/login';
+            return;
+        }
         const el = document.getElementById(`reply-box-${id}`);
         el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        if(el.style.display === 'block') {
+             setTimeout(() => document.getElementById(`reply-input-${id}`).focus(), 100);
+        }
     }
 
     async function postComment(parentId = null) {
-        const body = parentId ? document.getElementById(`reply-input-${parentId}`).value : document.getElementById('commentBox').value;
-        if (!body) return;
+        const inputId = parentId ? `reply-input-${parentId}` : 'commentBox';
+        const input = document.getElementById(inputId);
+        const body = input.value;
+        if (!body.trim()) return;
 
-        const res = await fetch('/api/comments', {
-            method: 'POST',
-            body: JSON.stringify({ id: TMDB_ID, type: TYPE, body, parentId })
-        });
-        const data = await res.json();
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = 'Posting...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/comments', {
+                method: 'POST',
+                body: JSON.stringify({ id: TMDB_ID, type: TYPE, body, parentId })
+            });
+            const data = await res.json();
+            
+            if (data.status === 'ok') {
+                input.value = '';
+                if(parentId) toggleReplyBox(parentId);
+                loadComments(); // Refresh list
+            } else {
+                alert(data.error || 'Failed to post');
+            }
+        } catch (e) {
+            alert('Error connecting to server');
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+</script>
         
         if (data.error) alert(data.error);
         else {

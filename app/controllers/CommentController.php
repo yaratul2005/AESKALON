@@ -2,6 +2,12 @@
 
 class CommentController {
     
+    public function __construct() {
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+    }
+    
     public function getComments() {
         $contentId = $_GET['id'] ?? 0;
         $type = $_GET['type'] ?? 'movie';

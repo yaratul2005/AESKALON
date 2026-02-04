@@ -620,7 +620,134 @@ footer {
     }
 }
 
-/* --- PREMIUM DASHBOARD STYLES --- */
+
+/* Comments Section Premium */
+.comments-container {
+    margin-top: 40px;
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid var(--border);
+}
+
+.comment-input-wrapper {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.comment-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary);
+}
+
+.comment-box {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 15px;
+    color: var(--text);
+    font-size: 1rem;
+    resize: none;
+    min-height: 80px;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.comment-box:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-send {
+    background: var(--primary);
+    color: #0f172a;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 25px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    align-self: flex-end;
+    transition: transform 0.2s;
+}
+
+.btn-send:hover {
+    transform: translateY(-2px);
+}
+
+.comment-thread {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    animation: fadeIn 0.4s ease;
+}
+
+.comment-content {
+    flex: 1;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.comment-author {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+
+.comment-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.comment-body {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px 16px;
+    border-radius: 0 12px 12px 12px;
+    line-height: 1.5;
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.comment-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 15px;
+}
+
+.action-link {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.action-link:hover {
+    color: var(--text);
+}
+
+.replies-list {
+    margin-left: 50px;
+    margin-top: 15px;
+    border-left: 2px solid var(--border);
+    padding-left: 20px;
+}
+
+.reply-item {
+    margin-bottom: 15px;
+}
 
 /* Glass Cards */
 .glass-panel {
