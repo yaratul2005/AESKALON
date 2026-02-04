@@ -2,6 +2,12 @@
 
 class UserController {
     
+    public function __construct() {
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+    }
+    
     public function dashboard() {
         if (!isset($_SESSION['user_id'])) exit(header('Location: /login'));
         
@@ -36,14 +42,8 @@ class UserController {
             [$userId]
         )->fetchAll();
 
-        // Pass data to view
-        // Note: TMDB details (images/titles) are not stored locally, so we need to fetch them client-side or cache them.
-        // For performance, we'll store basic metadata in history/watch_later tables in a real app, 
-        // OR we can fetch them via JS on the dashboard.
-        // Given the constraints, I'll update the 'v3.0.0' SQL to include title/poster in these tables to avoid 20 API calls.
-        // Wait, I can't easily change the SQL already provided unless I provide a v3.1 update.
-        // Actually, the user asked for "easy login system", and "dashboard". 
-        // I will implement a JS-based fetcher for the dashboard items to keep it light.
+        // Fetch Settings for Layout
+        $settings = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
 
         $pageTitle = "My Dashboard";
         
@@ -59,9 +59,6 @@ class UserController {
         
         $userId = $_SESSION['user_id'];
         $pass = $_POST['password'] ?? '';
-        $avatar = $_POST['avatar'] ?? ''; // simplified avatar url input or upload
-        // If file upload:
-        // For now, let's keep it simple: "A random username will be given", user edits profile.
         
         $db = Database::getInstance();
 
@@ -75,8 +72,6 @@ class UserController {
              $db->query("UPDATE users SET password_hash = ? WHERE id = ?", [$hash, $userId]);
         }
         
-        // Avatar Upload Logic could go here. For now, we use the UI Avatars or Google Avatar.
-        // Let's allow updating the username if they want.
         $newUsername = $_POST['username'] ?? '';
         if ($newUsername) {
              $db->query("UPDATE users SET username = ? WHERE id = ?", [$newUsername, $userId]);
