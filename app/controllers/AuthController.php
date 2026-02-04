@@ -1,6 +1,6 @@
 <?php
 
-use Core\SMTP; // Assuming SMTP is in core/SMTP.php but checking if namespace usage is correct. 
+ 
 // Actually, earlier files used `require_once '../core/SMTP.php'` and `new SMTP(...)` without namespace. 
 // I will stick to the existing pattern.
 
