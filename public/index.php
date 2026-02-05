@@ -4,6 +4,18 @@ require_once '../config/config.php';
 require_once '../core/Router.php';
 require_once '../core/Database.php';
 
+// Security Headers
+header("X-Frame-Options: DENY");
+header("X-Content-Type-Options: nosniff");
+header("X-XSS-Protection: 1; mode=block");
+header("Referrer-Policy: strict-origin-when-cross-origin");
+if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+    header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
+    ini_set('session.cookie_secure', 1);
+}
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+
 function asset($path) {
     return SITE_URL . '/' . ltrim($path, '/');
 }

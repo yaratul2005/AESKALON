@@ -64,6 +64,12 @@ class UserController {
 
     public function updateProfile() {
         if (!isset($_SESSION['user_id'])) exit(header('Location: /login'));
+        require_once '../core/Csrf.php';
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+             $_SESSION['error'] = "Security check failed. Try again.";
+             header('Location: /settings');
+             return;
+        }
         $userId = $_SESSION['user_id'];
         $db = Database::getInstance();
         
@@ -125,6 +131,12 @@ class UserController {
 
     public function deleteAccount() {
         if (!isset($_SESSION['user_id'])) exit(header('Location: /login'));
+        require_once '../core/Csrf.php';
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+             $_SESSION['error'] = "Security check failed.";
+             header('Location: /settings');
+             return;
+        }
         $userId = $_SESSION['user_id'];
         
         if (isset($_POST['confirm_delete'])) {

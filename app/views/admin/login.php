@@ -1,3 +1,4 @@
+<?php require_once '../core/Csrf.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,6 +22,7 @@
             <div class="error"><?= $_SESSION['error']; unset($_SESSION['error']); ?></div>
         <?php endif; ?>
         <form action="/admin/auth" method="POST">
+            <?= Csrf::input() ?>
             <input type="text" name="username" placeholder="Username" required>
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Login</button>

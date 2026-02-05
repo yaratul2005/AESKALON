@@ -1,6 +1,7 @@
 <?php
 
 require_once '../core/SMTP.php';
+require_once '../core/Csrf.php';
 
 class AdminController {
     
@@ -24,6 +25,12 @@ class AdminController {
     }
 
     public function auth() {
+        require_once '../core/Csrf.php';
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+             $_SESSION['error'] = "Security Token Expired. Please try again.";
+             header('Location: /admin');
+             return;
+        }
         $username = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
         $db = Database::getInstance();

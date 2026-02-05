@@ -1,4 +1,4 @@
-<?php require_once '../app/views/layout.php'; ?>
+<?php require_once '../app/views/layout.php'; require_once '../core/Csrf.php'; ?>
 
 <main style="padding: 40px 20px; max-width: 800px; margin: 0 auto;">
     
@@ -20,6 +20,7 @@
     <?php endif; ?>
 
     <form action="/update-profile" method="POST" enctype="multipart/form-data">
+        <?= Csrf::input() ?>
         
         <!-- Profile Section -->
         <div class="glass-panel" style="padding: 30px; margin-bottom: 30px;">
@@ -92,6 +93,7 @@
                 <p style="margin: 5px 0 0; color: var(--text-muted); font-size: 0.9rem;">Once you delete your account, there is no going back. Please be certain.</p>
             </div>
             <form action="/delete-account" method="POST" onsubmit="return confirm('Are you absolutely sure? This action cannot be undone.');">
+                <?= Csrf::input() ?>
                 <input type="hidden" name="confirm_delete" value="1">
                 <button type="submit" class="btn" style="background: #ef4444; color: white;">Delete Account</button>
             </form>
