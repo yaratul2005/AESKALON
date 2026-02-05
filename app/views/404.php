@@ -1,6 +1,6 @@
 <?php
 $pageTitle = "Page Not Found - Great10";
-require_once '../app/views/layout.php';
+ob_start();
 ?>
 
 <div class="error-container">
@@ -78,3 +78,8 @@ require_once '../app/views/layout.php';
     .error-content h1 { font-size: 5rem; }
 }
 </style>
+
+<?php
+$content = ob_get_clean();
+require_once '../app/views/layout.php';
+?>
