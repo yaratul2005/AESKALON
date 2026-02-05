@@ -102,16 +102,14 @@
             <button type="submit" class="auth-btn">Login</button>
         </form>
 
-        <div class="divider"><span>OR</span></div>
+        <div class="divider">OR</div>
 
-        <a href="/auth/google" class="google-btn">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
+        <a href="/auth/google" class="btn-google">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google"> 
             Continue with Google
         </a>
 
-        <p style="margin-top: 20px; color: var(--text-muted);">
-            Don't have an account? <a href="/register" style="color: var(--primary);">Register</a>
-        </p>
+        <p>Don't have an account? <a href="/register">Register</a></p>
     </div>
 </div>
 
