@@ -55,7 +55,15 @@ class AuthController {
         $db->query($sql, [$tempUsername, $email, $token]); 
 
         // Send Email
-        $this->sendVerificationEmail($email, $token);
+        $emailResult = $this->sendVerificationEmail($email, $token);
+        
+        if (!$emailResult['success']) {
+            // Failed. Delete the user so they can try again.
+            $db->query("DELETE FROM users WHERE email = ?", [$email]);
+            $_SESSION['error'] = "Email Delivery Failed: " . $emailResult['error'];
+            header('Location: /register');
+            return;
+        }
 
         $_SESSION['success'] = "Verification link sent! Please check your email.";
         header('Location: /login');
@@ -212,7 +220,12 @@ class AuthController {
         $body .= "<p>Click the link below to verify your account and set your password:</p>";
         $body .= "<a href='$link'>$link</a>";
         
-        $smtp->send($to, "Verify your Account", $body, $s['smtp_from_email'], $s['site_name']);
+        $result = $smtp->send($to, "Verify your Account", $body, $s['smtp_from_email'], $s['site_name']);
+        
+        if (!$result) {
+            return ['success' => false, 'error' => implode(' | ', $smtp->getLogs())];
+        }
+        return ['success' => true];
     }
     
     public function logout() {
