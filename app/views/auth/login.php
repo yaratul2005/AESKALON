@@ -105,7 +105,7 @@
         <div class="divider">OR</div>
 
         <a href="/auth/google" class="btn-google">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google"> 
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="24" height="24"> 
             Continue with Google
         </a>
 

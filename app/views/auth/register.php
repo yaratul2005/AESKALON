@@ -31,6 +31,12 @@
             <button type="submit" class="auth-btn">Verify Email</button>
         </form>
 
+        <div class="divider"><span>OR</span></div>
+        <a href="/auth/google" class="btn-google">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="24" height="24">
+            Sign up with Google
+        </a>
+
         <p style="color: var(--text-muted);">
             Already have an account? <a href="/login" style="color: var(--primary);">Login</a>
         </p>
