@@ -9,6 +9,27 @@ header("Content-Type: application/xml; charset=utf-8");
 
 echo '<?xml version="1.0" encoding="UTF-8"?>';
 ?>
+// Helper to fetch/cache TMDB data for Sitemap
+require_once '../core/Cache.php';
+
+function fetchSitemapData($endpoint, $key) {
+    if (!defined('TMDB_API_KEY')) return [];
+    
+    $url = TMDB_BASE_URL . $endpoint . (strpos($endpoint, '?') ? '&' : '?') . 'api_key=' . TMDB_API_KEY;
+    return Cache::remember('sitemap_' . $key, function() use ($url) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        $data = curl_exec($ch);
+        curl_close($ch);
+        return json_decode($data, true)['results'] ?? [];
+    }, 43200); // 12 Hours Cache
+}
+
+$movies = fetchSitemapData('/trending/movie/week', 'movies');
+$series = fetchSitemapData('/trending/tv/week', 'series');
+?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <!-- Static Pages -->
     <url>
@@ -27,31 +48,24 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
         <priority>0.8</priority>
     </url>
 
-    <!-- Recent Movies (Optimized for SEO) -->
-    <?php
-    // Fetch last 50 movies
-    $stmt = $db->query("SELECT id, title, release_date FROM content WHERE type = 'movie' ORDER BY created_at DESC LIMIT 50");
-    while ($row = $stmt->fetch()):
-    ?>
+    <!-- Trending Movies -->
+    <?php foreach ($movies as $item): ?>
     <url>
-        <loc><?= $baseUrl ?>/watch/<?= $row['id'] ?>?type=movie</loc>
-        <lastmod><?= date('Y-m-d', strtotime($row['release_date'] ?? 'now')) ?></lastmod>
+        <loc><?= $baseUrl ?>/watch/<?= $item['id'] ?>?type=movie</loc>
+        <lastmod><?= isset($item['release_date']) ? date('Y-m-d', strtotime($item['release_date'])) : date('Y-m-d') ?></lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>
-    <?php endwhile; ?>
+    <?php endforeach; ?>
 
-    <!-- Recent Series -->
-    <?php
-    $stmt = $db->query("SELECT id, title, release_date FROM content WHERE type = 'tv' ORDER BY created_at DESC LIMIT 50");
-    while ($row = $stmt->fetch()):
-    ?>
+    <!-- Trending Series -->
+    <?php foreach ($series as $item): ?>
     <url>
-        <loc><?= $baseUrl ?>/watch/<?= $row['id'] ?>?type=tv</loc>
-        <lastmod><?= date('Y-m-d', strtotime($row['release_date'] ?? 'now')) ?></lastmod>
+        <loc><?= $baseUrl ?>/watch/<?= $item['id'] ?>?type=tv</loc>
+        <lastmod><?= isset($item['first_air_date']) ? date('Y-m-d', strtotime($item['first_air_date'])) : date('Y-m-d') ?></lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>
-    <?php endwhile; ?>
+    <?php endforeach; ?>
 
 </urlset>
