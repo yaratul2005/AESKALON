@@ -1,5 +1,7 @@
 <?php
 
+require_once '../core/Cache.php';
+
 class WatchController {
 
     public function __construct() {
