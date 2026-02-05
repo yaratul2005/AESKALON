@@ -6,8 +6,8 @@ class Captcha {
     
     private static function getSetting($key) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT value FROM settings WHERE name = ?");
-        $stmt->execute([$key]);
+        // Use query() which handles prepare/execute internally in this wrapper
+        $stmt = $db->query("SELECT setting_value FROM settings WHERE setting_key = ?", [$key]); 
         return $stmt->fetchColumn();
     }
 
