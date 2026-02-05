@@ -41,7 +41,23 @@ class WatchController {
         }
 
         $title = $movie['title'] ?? $movie['name'];
-        $pageTitle = "Watch " . $title;
+        // Fetch Recommendations
+        $tmdbId = $id; // Assuming $id is the TMDB ID
+        $cacheKeyRec = "rec_{$type}_{$tmdbId}";
+        $recommendations = Cache::remember($cacheKeyRec, function() use ($tmdbId, $type) {
+            $endpoint = "/{$type}/{$tmdbId}/recommendations"; // 'similar' or 'recommendations'
+            $url = TMDB_BASE_URL . $endpoint . '?api_key=' . TMDB_API_KEY;
+            
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            $data = curl_exec($ch);
+            curl_close($ch);
+            
+            return json_decode($data, true)['results'] ?? [];
+        }, 86400); // 24h Cache
+
+        $pageTitle = "Watch " . ($movie['title'] ?? $movie['name'] ?? 'Video');
         $pageDesc = $movie['overview'] ?? '';
 
         ob_start();

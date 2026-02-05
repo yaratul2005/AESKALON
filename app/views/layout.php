@@ -25,6 +25,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/192/movie-projector.png">
+
     <!-- Core Styles -->
     <link rel="stylesheet" href="/assets/style.css?v=<?= time() ?>">
     <link rel="icon" href="<?= htmlspecialchars($settings['site_favicon'] ?? '/assets/favicon.ico') ?>">
@@ -198,5 +203,15 @@
     </div>
 </footer>
 
+<script>
+    // PWA Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                console.log('SW registered:', reg);
+            }).catch(err => console.log('SW error:', err));
+        });
+    }
+</script>
 </body>
 </html>

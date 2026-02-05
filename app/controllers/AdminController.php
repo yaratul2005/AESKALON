@@ -66,6 +66,27 @@ class AdminController {
             if (!in_array(basename($file), $appliedVersions)) $pendingUpdatesCount++;
         }
 
+        // --- Analytics ---
+        // 1. User Stats
+        $totalUsers = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
+        $newUsers = $db->query("SELECT COUNT(*) FROM users WHERE created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)")->fetchColumn();
+        
+        // 2. Verified Count
+        $verifiedUsers = $db->query("SELECT COUNT(*) FROM users WHERE is_verified = 1")->fetchColumn();
+
+        // 3. Top Content (Most Watched)
+        $topContent = $db->query("
+            SELECT tmdb_id, type, COUNT(*) as views 
+            FROM user_history 
+            GROUP BY tmdb_id, type 
+            ORDER BY views DESC 
+            LIMIT 5
+        ")->fetchAll();
+        
+        // Enrich Top Content with Titles (using Cache/API would be slow, so we just show ID/Type or fetch layout-side if needed)
+        // For speed, we will rely on client-side or just ID for now, OR fetches locally if we cache titles in DB.
+        // Actually, let's just show ID and Type for MVP or assume we don't spam API.
+
         require_once '../app/views/admin/layout.php';
     }
 

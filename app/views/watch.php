@@ -52,6 +52,26 @@
         </div>
     </div>
 
+    <!-- Recommendations -->
+    <?php if (!empty($recommendations)): ?>
+    <div style="margin-top: 40px; margin-bottom: 20px;">
+        <h3 style="color: white; margin-bottom: 15px;">You Might Also Like</h3>
+        <div class="scroll-container" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; scroll-behavior: smooth;">
+            <?php foreach (array_slice($recommendations, 0, 10) as $rec): ?>
+            <?php if (!empty($rec['poster_path'])): ?>
+            <a href="/watch/<?= $rec['id'] ?>?type=<?= $type ?>" class="rec-card" style="flex: 0 0 140px; text-decoration: none; transition: transform 0.2s;">
+                <img src="https://image.tmdb.org/t/p/w200<?= $rec['poster_path'] ?>" 
+                     style="width: 100%; border-radius: 12px; aspect-ratio: 2/3; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <?= htmlspecialchars($rec['title'] ?? $rec['name']) ?>
+                </p>
+            </a>
+            <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Comments Section -->
     <div class="comments-container">
         <h3 style="margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
