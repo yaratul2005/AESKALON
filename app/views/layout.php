@@ -57,7 +57,10 @@
         <div style="display: flex; align-items: center; gap: 10px;">
             <div class="search-container" id="searchContainer">
                 <svg class="search-icon" onclick="toggleMobileSearch()" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" class="search-input" placeholder="Search..." id="searchInput">
+                <div class="mobile-search-wrapper">
+                    <input type="text" class="search-input" placeholder="Search movies, series..." id="searchInput">
+                    <span class="search-close" onclick="toggleMobileSearch()">✕</span>
+                </div>
                 <div class="search-results" id="searchResults"></div>
             </div>
 
