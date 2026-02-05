@@ -99,6 +99,9 @@
         <form action="/login" method="POST">
             <input type="email" name="email" class="auth-input" placeholder="Email Address" required>
             <input type="password" name="password" class="auth-input" placeholder="Password" required>
+            
+            <?php require_once '../core/Captcha.php'; echo Captcha::render(); ?>
+
             <button type="submit" class="auth-btn">Login</button>
         </form>
 

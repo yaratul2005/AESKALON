@@ -32,6 +32,26 @@
             <textarea name="site_footer_code" style="font-family: monospace; height: 150px;"><?= htmlspecialchars($settings['site_footer_code'] ?? '') ?></textarea>
         </div>
 
+        <!-- Security Settings -->
+        <div id="security" class="tab-content">
+            <h2>🛡️ Security (CAPTCHA)</h2>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="hidden" name="captcha_enabled" value="0">
+                    <input type="checkbox" name="captcha_enabled" value="1" <?= ($settings['captcha_enabled'] ?? '0') == '1' ? 'checked' : '' ?> style="width: auto;">
+                    Enable Google ReCAPTCHA v2
+                </label>
+            </div>
+            <div class="form-group">
+                <label>Site Key</label>
+                <input type="text" name="recaptcha_site_key" value="<?= htmlspecialchars($settings['recaptcha_site_key'] ?? '') ?>" placeholder="6Ld...">
+            </div>
+            <div class="form-group">
+                <label>Secret Key</label>
+                <input type="password" name="recaptcha_secret_key" value="<?= htmlspecialchars($settings['recaptcha_secret_key'] ?? '') ?>" placeholder="6Ld...">
+            </div>
+        </div>
+
         <!-- Mail -->
         <div id="mail" class="tab-content">
             <label>SMTP Host</label>

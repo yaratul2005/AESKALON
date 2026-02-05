@@ -25,6 +25,9 @@
             <?= Csrf::input() ?>
             <input type="text" name="username" placeholder="Username" required>
             <input type="password" name="password" placeholder="Password" required>
+            
+            <?php require_once '../core/Captcha.php'; echo Captcha::render(); ?>
+            
             <button type="submit">Login</button>
         </form>
     </div>

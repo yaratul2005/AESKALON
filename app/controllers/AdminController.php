@@ -26,11 +26,20 @@ class AdminController {
 
     public function auth() {
         require_once '../core/Csrf.php';
+        require_once '../core/Captcha.php';
+
         if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
              $_SESSION['error'] = "Security Token Expired. Please try again.";
              header('Location: /admin');
              return;
         }
+
+        if (Captcha::isEnabled() && !Captcha::verify($_POST['g-recaptcha-response'] ?? '')) {
+             $_SESSION['error'] = "CAPTCHA Verification Failed.";
+             header('Location: /admin');
+             return;
+        }
+        
         $username = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
         $db = Database::getInstance();
