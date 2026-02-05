@@ -69,8 +69,16 @@ class AdminController {
         
         $db = Database::getInstance();
         $bans = $db->query("SELECT * FROM ip_bans ORDER BY banned_at DESC")->fetchAll();
+        $allUsers = $db->query("SELECT * FROM users ORDER BY created_at DESC")->fetchAll();
         
         require_once '../app/views/admin/layout.php';
+    }
+    
+    public function deleteUser($id) {
+        if (!$this->isAuthenticated()) exit("Unauthorized");
+        $db = Database::getInstance();
+        $db->query("DELETE FROM users WHERE id = ?", [$id]);
+        header('Location: /admin/users');
     }
 
     public function banIp() {
