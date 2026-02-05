@@ -54,32 +54,87 @@ class UserController {
         require_once '../app/views/layout.php';
     }
 
+    public function settings() {
+        if (!isset($_SESSION['user_id'])) exit(header('Location: /login'));
+        $db = Database::getInstance();
+        $user = $db->query("SELECT * FROM users WHERE id = ?", [$_SESSION['user_id']])->fetch();
+        $pageTitle = "Account Settings";
+        require_once '../app/views/user/settings.php';
+    }
+
     public function updateProfile() {
         if (!isset($_SESSION['user_id'])) exit(header('Location: /login'));
-        
         $userId = $_SESSION['user_id'];
-        $pass = $_POST['password'] ?? '';
-        
         $db = Database::getInstance();
-
-        if (!empty($pass)) {
-             if (strlen($pass) < 6) {
-                 $_SESSION['error'] = "Password too short.";
-                 header('Location: /dashboard');
-                 return;
-             }
-             $hash = password_hash($pass, PASSWORD_DEFAULT);
-             $db->query("UPDATE users SET password_hash = ? WHERE id = ?", [$hash, $userId]);
+        
+        // 1. Password Update
+        if (!empty($_POST['new_password'])) {
+            $current = $_POST['current_password'] ?? '';
+            $user = $db->query("SELECT password_hash FROM users WHERE id = ?", [$userId])->fetch();
+            
+            if (password_verify($current, $user['password_hash'])) {
+                if (strlen($_POST['new_password']) >= 6) {
+                    $hash = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
+                    $db->query("UPDATE users SET password_hash = ? WHERE id = ?", [$hash, $userId]);
+                    $_SESSION['success'] = "Password updated.";
+                } else {
+                    $_SESSION['error'] = "New password must be at least 6 characters.";
+                }
+            } else {
+                $_SESSION['error'] = "Incorrect current password.";
+            }
         }
         
-        $newUsername = $_POST['username'] ?? '';
-        if ($newUsername) {
-             $db->query("UPDATE users SET username = ? WHERE id = ?", [$newUsername, $userId]);
-             $_SESSION['user_username'] = $newUsername;
+        // 2. Info Update (Email/Username/Bio)
+        $username = $_POST['username'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $bio = $_POST['bio'] ?? '';
+        
+        if ($username && $email) {
+            try {
+                $db->query("UPDATE users SET username=?, email=?, bio=? WHERE id=?", [$username, $email, $bio, $userId]);
+                $_SESSION['user_username'] = $username;
+                $_SESSION['success'] = "Profile updated successfully.";
+            } catch (Exception $e) {
+                $_SESSION['error'] = "Username or Email already taken.";
+            }
+        }
+        
+        // 3. Avatar Upload
+        if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+            $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+            $ext = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
+            
+            if (in_array($ext, $allowed)) {
+                $uploadDir = '../public/assets/avatars/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+                
+                $filename = 'user_' . $userId . '_' . time() . '.' . $ext;
+                if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadDir . $filename)) {
+                    $publicPath = '/assets/avatars/' . $filename;
+                    $db->query("UPDATE users SET avatar = ? WHERE id = ?", [$publicPath, $userId]);
+                    $_SESSION['user_avatar'] = $publicPath;
+                }
+            } else {
+                $_SESSION['error'] = "Invalid image format. Allowed: JPG, PNG, WEBP.";
+            }
         }
 
-        $_SESSION['success'] = "Profile updated.";
-        header('Location: /dashboard');
+        header('Location: /settings');
+    }
+
+    public function deleteAccount() {
+        if (!isset($_SESSION['user_id'])) exit(header('Location: /login'));
+        $userId = $_SESSION['user_id'];
+        
+        if (isset($_POST['confirm_delete'])) {
+            $db = Database::getInstance();
+            $db->query("DELETE FROM users WHERE id = ?", [$userId]);
+            session_destroy();
+            header('Location: /');
+            exit;
+        }
+        header('Location: /settings');
     }
 
     // --- API Methods ---
