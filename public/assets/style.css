@@ -569,16 +569,22 @@ footer {
         /* Below header */
         left: 0;
         right: 0;
-        width: 100%;
+        width: 100vw;
+        /* Full Viewport Width */
+        max-width: 100vw;
+        height: 60px;
+        /* Taller touch target */
         margin: 0;
         border-radius: 0;
-        border-left: none;
-        border-right: none;
+        border: none;
+        border-bottom: 1px solid var(--border);
         background: var(--surface);
-        padding: 20px;
+        padding: 0 20px;
+        /* Horizontal Padding */
+        box-sizing: border-box;
+        /* Critical for padding */
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
         z-index: 1001;
-        /* Above header (1000) */
         opacity: 1;
         visibility: visible;
         animation: slideDown 0.3s ease;
