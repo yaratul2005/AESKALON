@@ -612,26 +612,8 @@ footer {
         font-size: 1.1rem;
     }
 
-    /* Mobile Search Close Button */
-    .search-close {
-        display: none;
-    }
-
     .search-container.mobile-active .search-close {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: fixed;
-        top: 70px;
-        right: 0;
-        width: 60px;
-        height: 60px;
-        z-index: 1003;
-        color: #94a3b8;
-        font-size: 1.5rem;
-        cursor: pointer;
-        opacity: 1;
-        animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: none;
     }
 
     @keyframes slideDown {
