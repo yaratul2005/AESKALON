@@ -26,7 +26,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <!-- Core Styles -->
-    <link rel="stylesheet" href="/assets/style.css">
+    <link rel="stylesheet" href="/assets/style.css?v=<?= time() ?>">
     <link rel="icon" href="<?= htmlspecialchars($settings['site_favicon'] ?? '/assets/favicon.ico') ?>">
     
     <!-- Dynamic Header Code -->
