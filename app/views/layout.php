@@ -49,11 +49,14 @@
             <a href="/movies">Movies</a>
             <a href="/series">Series</a>
             <a href="/anime">Anime</a>
+            <?php if(!isset($_SESSION['user_id'])): ?>
+                <a href="/login" class="desktop-hidden" style="color: var(--primary); margin-top: 10px;">Login</a>
+            <?php endif; ?>
         </nav>
         
         <div style="display: flex; align-items: center; gap: 10px;">
             <div class="search-container" id="searchContainer">
-                <svg class="search-icon" onclick="toggleMobileSearch()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <svg class="search-icon" onclick="toggleMobileSearch()" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input type="text" class="search-input" placeholder="Search..." id="searchInput">
                 <div class="search-results" id="searchResults"></div>
             </div>
@@ -70,7 +73,7 @@
                 </div>
                 <style> #userDropdown.active { display: block !important; } </style>
             <?php else: ?>
-                <div style="display: flex; gap: 10px;" class="auth-buttons">
+                <div style="display: flex; gap: 10px;" class="auth-buttons mobile-hidden">
                     <a href="/login" style="color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.9rem;">Login</a>
                 </div>
             <?php endif; ?>
@@ -79,7 +82,7 @@
 </header>
 <style>
     @media (min-width: 769px) { .desktop-hidden { display: none !important; } }
-    @media (max-width: 768px) { .auth-buttons a { font-size: 0.8rem; } }
+    @media (max-width: 768px) { .mobile-hidden { display: none !important; } }
 </style>
 <script>
     const searchInput = document.getElementById('searchInput');
