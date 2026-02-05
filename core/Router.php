@@ -43,7 +43,8 @@ class Router {
 
         // 404
         if ($url !== '/favicon.ico') {
-            echo "<h1 style='color:white;text-align:center;margin-top:50px;'>404 - Not Found</h1>";
+            http_response_code(404);
+            require_once '../app/views/404.php';
         }
     }
 }
