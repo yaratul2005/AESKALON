@@ -4,6 +4,7 @@
         <div class="tab" data-target="seo">SEO & Analytics</div>
         <div class="tab" data-target="mail">Mail (SMTP)</div>
         <div class="tab" data-target="auth">Google Auth</div>
+        <div class="tab" data-target="security">Security</div>
     </div>
 
     <form action="/admin/update" method="POST" enctype="multipart/form-data">
