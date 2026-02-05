@@ -8,7 +8,6 @@ $baseUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOS
 header("Content-Type: application/xml; charset=utf-8");
 
 echo '<?xml version="1.0" encoding="UTF-8"?>';
-?>
 // Helper to fetch/cache TMDB data for Sitemap
 require_once '../core/Cache.php';
 
