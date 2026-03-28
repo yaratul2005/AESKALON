@@ -113,19 +113,26 @@ h3 {
 }
 
 .btn {
-    background: var(--primary);
+    background: linear-gradient(135deg, var(--primary), #0ea5e9);
     color: #0f172a;
-    padding: 10px 20px;
-    border-radius: 6px;
+    padding: 12px 24px;
+    border-radius: 8px;
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     border: none;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn:hover {
-    opacity: 0.9;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(56, 189, 248, 0.5);
 }
 
 input,
@@ -174,28 +181,40 @@ label {
     color: #f87171;
 }
 
-/* Tabs */
+/* Tabs (Pill Buttons) */
 .tabs {
     display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
     border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
     margin-bottom: 25px;
 }
 
 .tab {
-    padding: 12px 24px;
+    padding: 10px 20px;
     cursor: pointer;
     color: var(--text-muted);
-    border-bottom: 2px solid transparent;
-    transition: color 0.2s;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .tab:hover {
     color: var(--text);
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
 }
 
 .tab.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
+    color: #0f172a;
+    background: var(--primary);
+    border-color: var(--primary);
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+    transform: translateY(-2px);
 }
 
 .tab-content {
