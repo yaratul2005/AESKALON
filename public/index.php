@@ -33,11 +33,10 @@ $router->add('GET', '/anime', 'BrowseController', 'page', 'anime');
 
 // Auth Routes
 $router->add('GET', '/login', 'AuthController', 'login');
-$router->add('POST', '/login', 'AuthController', 'doLogin');
 $router->add('GET', '/register', 'AuthController', 'register');
-$router->add('POST', '/register', 'AuthController', 'doRegister');
-$router->add('GET', '/verify/([a-z0-9]+)', 'AuthController', 'verify');
-$router->add('POST', '/complete-registration', 'AuthController', 'completeRegistration');
+$router->add('POST', '/api/auth/login', 'AuthController', 'apiLogin');
+$router->add('POST', '/api/auth/register', 'AuthController', 'apiRegister');
+$router->add('POST', '/api/auth/verify', 'AuthController', 'apiVerifyOtp');
 $router->add('GET', '/auth/google', 'AuthController', 'google');
 $router->add('GET', '/auth/google/callback', 'AuthController', 'googleCallback');
 $router->add('GET', '/logout', 'AuthController', 'logout');

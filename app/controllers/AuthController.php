@@ -24,120 +24,122 @@ class AuthController {
         require_once '../app/views/auth/register.php';
     }
 
-    // --- Logic ---
+    // --- New AJAX API Methods ---
     
-    // 1. Email Registration (Step 1: Send Verify Link)
-    public function doRegister() {
-        $email = $_POST['email'] ?? '';
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['error'] = "Invalid email address.";
-            header('Location: /register');
-            return;
-        }
-
-        $db = Database::getInstance();
-        
-        // Check if exists
-        $user = $db->query("SELECT * FROM users WHERE email = ?", [$email])->fetch();
-        if ($user) {
-            $_SESSION['error'] = "Email already registered. Please login.";
-            header('Location: /login');
-            return;
-        }
-
-        // Create Verify Token
-        $token = bin2hex(random_bytes(32));
-        
-        // Insert partial user
-        $tempUsername = 'user_' . substr(md5(uniqid()), 0, 8);
-        
-        $sql = "INSERT INTO users (username, email, verify_token, is_verified, password_hash) VALUES (?, ?, ?, 0, '')";
-        $db->query($sql, [$tempUsername, $email, $token]); 
-
-        // Send Email
-        $emailResult = $this->sendVerificationEmail($email, $token);
-        
-        if (!$emailResult['success']) {
-            // Failed. Delete the user so they can try again.
-            $db->query("DELETE FROM users WHERE email = ?", [$email]);
-            $_SESSION['error'] = "Email Delivery Failed: " . $emailResult['error'];
-            header('Location: /register');
-            return;
-        }
-
-        $_SESSION['success'] = "Verification link sent! Please check your email.";
-        header('Location: /login');
+    private function jsonResponse($status, $message, $data = []) {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => $status, 'message' => $message, 'data' => $data]);
+        exit;
     }
 
-    public function doLogin() {
+    public function apiLogin() {
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
         
         // CAPTCHA
         if (Captcha::isEnabled() && !Captcha::verify($_POST['g-recaptcha-response'] ?? '')) {
-            $_SESSION['error'] = "CAPTCHA Check Failed. Are you human?";
-            header('Location: /login');
-            return;
+            $this->jsonResponse('error', "CAPTCHA Check Failed.");
         }
 
         $db = Database::getInstance();
         $user = $db->query("SELECT * FROM users WHERE email = ?", [$email])->fetch();
         
-        if ($user && password_verify($password, $user['password_hash'])) {
+        if (!$user) {
+            $this->jsonResponse('error', "Invalid email or password.");
+        }
+
+        // If they registered with Google, hash might be empty
+        if (empty($user['password_hash'])) {
+            $this->jsonResponse('error', "This account was created with Google. Please continue with Google.");
+        }
+
+        if (password_verify($password, $user['password_hash'])) {
             if (!$user['is_verified']) {
-                $_SESSION['error'] = "Please verify your email first.";
-                header('Location: /login');
-                return;
+                $this->jsonResponse('unverified', "Please verify your email first.");
             }
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_username'] = $user['username'];
             $_SESSION['user_avatar'] = $user['avatar'] ?? 'https://ui-avatars.com/api/?name='.$user['username'].'&background=random';
             
-            header('Location: /dashboard');
+            $this->jsonResponse('success', "Logged in successfully.");
         } else {
-            $_SESSION['error'] = "Invalid email or password.";
-            header('Location: /login');
+            $this->jsonResponse('error', "Invalid email or password.");
         }
     }
 
-    // 2. Verify Link Clicked -> Set Password Form
-    public function verify($token) {
-        $db = Database::getInstance();
-        $user = $db->query("SELECT * FROM users WHERE verify_token = ?", [$token])->fetch();
-        
-        if (!$user) {
-            die("Invalid or expired token.");
-        }
-
-        // Show Set Password View
-        require_once '../app/views/auth/set_password.php';
-    }
-
-    // 3. Complete Registration (Set Password)
-    public function completeRegistration() {
-        $token = $_POST['token'] ?? '';
+    public function apiRegister() {
+        $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
         
+        // Optional CAPTCHA on register
+        if (Captcha::isEnabled() && !Captcha::verify($_POST['g-recaptcha-response'] ?? '')) {
+            $this->jsonResponse('error', "CAPTCHA Check Failed.");
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->jsonResponse('error', "Invalid email address.");
+        }
         if (strlen($password) < 6) {
-            die("Password must be at least 6 characters.");
+            $this->jsonResponse('error', "Password must be at least 6 characters.");
         }
 
         $db = Database::getInstance();
-        $user = $db->query("SELECT * FROM users WHERE verify_token = ?", [$token])->fetch();
+        $user = $db->query("SELECT * FROM users WHERE email = ?", [$email])->fetch();
         
-        if (!$user) {
-            die("Invalid token.");
+        if ($user && $user['is_verified']) {
+            $this->jsonResponse('error', "Email already registered. Please login.");
         }
 
+        $otp = sprintf("%06d", mt_rand(1, 999999));
         $hash = password_hash($password, PASSWORD_DEFAULT);
         
-        $db->query("UPDATE users SET password_hash = ?, is_verified = 1, verify_token = NULL WHERE id = ?", [$hash, $user['id']]);
+        if ($user && !$user['is_verified']) {
+            // Re-send OTP to existing unverified user
+            $db->query("UPDATE users SET verify_token = ?, password_hash = ? WHERE email = ?", [$otp, $hash, $email]);
+            $tempUsername = $user['username'];
+        } else {
+            // New partial user
+            $tempUsername = 'user_' . substr(md5(uniqid()), 0, 8);
+            $sql = "INSERT INTO users (username, email, verify_token, is_verified, password_hash) VALUES (?, ?, ?, 0, ?)";
+            $db->query($sql, [$tempUsername, $email, $otp, $hash]); 
+        }
+
+        // Send OTP Email
+        $emailResult = $this->sendOtpEmail($email, $otp);
         
+        if (!$emailResult['success']) {
+            $this->jsonResponse('error', "Email Delivery Failed: Cannot send OTP. Check SMTP provider.");
+        }
+
+        $_SESSION['verify_email'] = $email; // Store for verify step
+        $this->jsonResponse('success', "OTP sent to your email.");
+    }
+
+    public function apiVerifyOtp() {
+        $email = $_SESSION['verify_email'] ?? ($_POST['email'] ?? '');
+        $otp = $_POST['otp'] ?? '';
+        
+        if (!$email || !$otp) {
+            $this->jsonResponse('error', "Missing verification data.");
+        }
+
+        $db = Database::getInstance();
+        $user = $db->query("SELECT * FROM users WHERE email = ? AND verify_token = ?", [$email, $otp])->fetch();
+        
+        if (!$user) {
+            $this->jsonResponse('error', "Invalid or expired OTP code.");
+        }
+
+        // Verify user
+        $db->query("UPDATE users SET is_verified = 1, verify_token = NULL WHERE id = ?", [$user['id']]);
+        
+        // Log them in immediately
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_username'] = $user['username'];
         $_SESSION['user_avatar'] = $user['avatar'] ?? 'https://ui-avatars.com/api/?name='.$user['username'].'&background=random';
+        unset($_SESSION['verify_email']);
         
-        header('Location: /dashboard');
+        $this->jsonResponse('success', "Account verified and logged in.");
     }
 
     // --- Google Auth ---
@@ -207,20 +209,18 @@ class AuthController {
     }
 
     // --- Helpers ---
-    private function sendVerificationEmail($to, $token) {
+    private function sendOtpEmail($to, $otp) {
         $db = Database::getInstance();
         $s = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
         
         $smtp = new SMTP($s['smtp_host'], $s['smtp_port'], $s['smtp_user'], $s['smtp_pass']);
         
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
-        $link = $protocol . $_SERVER['HTTP_HOST'] . "/verify/$token";
-
-        $body = "<h2>Welcome!</h2>";
-        $body .= "<p>Click the link below to verify your account and set your password:</p>";
-        $body .= "<a href='$link'>$link</a>";
+        $body = "<h2>Your Verification Code</h2>";
+        $body .= "<p>Use the following 6-digit code to complete your registration:</p>";
+        $body .= "<h1 style='color: #0ea5e9; font-size: 32px; letter-spacing: 5px;'>$otp</h1>";
+        $body .= "<p>This code will expire shortly.</p>";
         
-        $result = $smtp->send($to, "Verify your Account", $body, $s['smtp_from_email'], $s['site_name']);
+        $result = $smtp->send($to, "Your OTP Verification Code", $body, $s['smtp_from_email'], $s['site_name']);
         
         if (!$result) {
             return ['success' => false, 'error' => implode(' | ', $smtp->getLogs())];
