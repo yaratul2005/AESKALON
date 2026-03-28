@@ -62,6 +62,11 @@ class WatchController {
         $pageTitle = "Watch " . ($movie['title'] ?? $movie['name'] ?? 'Video');
         $pageDesc = $movie['overview'] ?? '';
 
+        // Fetch User Ratings Stats
+        $stats = $db->query("SELECT AVG(rating) as avg_rating, count(id) as votes FROM user_ratings WHERE tmdb_id=? AND type=?", [$id, $type])->fetch();
+        $userRating = $stats['avg_rating'] ? number_format($stats['avg_rating'], 1) : '-';
+        $userVotes = $stats['votes'] ?? 0;
+
         ob_start();
         require_once '../app/views/watch.php';
         $content = ob_get_clean();

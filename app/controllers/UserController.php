@@ -183,4 +183,34 @@ class UserController {
         $db->query("INSERT INTO user_history (user_id, tmdb_id, type) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE watched_at=NOW()", [$userId, $tmdbId, $type]);
         echo json_encode(['status' => 'ok']);
     }
+
+    public function submitRating() {
+        if (!isset($_SESSION['user_id'])) exit(json_encode(['error' => 'Login required']));
+        
+        $userId = $_SESSION['user_id'];
+        $data = json_decode(file_get_contents('php://input'), true);
+        $tmdbId = $data['id'] ?? 0;
+        $type = $data['type'] ?? 'movie';
+        $rating = $data['rating'] ?? 0;
+
+        if($rating < 1 || $rating > 10) exit(json_encode(['error' => 'Invalid rating']));
+
+        $db = Database::getInstance();
+        $db->query("INSERT INTO user_ratings (user_id, tmdb_id, type, rating) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE rating=?", [$userId, $tmdbId, $type, $rating, $rating]);
+        echo json_encode(['status' => 'ok']);
+    }
+
+    public function submitReport() {
+        $userId = $_SESSION['user_id'] ?? null;
+        $data = json_decode(file_get_contents('php://input'), true);
+        $tmdbId = $data['id'] ?? 0;
+        $type = $data['type'] ?? 'movie';
+
+        if(!$tmdbId) exit(json_encode(['error' => 'Missing data']));
+
+        $db = Database::getInstance();
+        $db->query("INSERT INTO stream_reports (user_id, tmdb_id, type) VALUES (?, ?, ?)", [$userId, $tmdbId, $type]);
+        echo json_encode(['status' => 'ok']);
+    }
 }
+

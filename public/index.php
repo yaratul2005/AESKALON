@@ -49,6 +49,8 @@ $router->add('GET', '/api/comments', 'CommentController', 'getComments');
 $router->add('POST', '/api/comments', 'CommentController', 'postComment');
 $router->add('POST', '/api/watch-later', 'UserController', 'toggleWatchLater');
 $router->add('POST', '/api/history', 'UserController', 'addToHistory');
+$router->add('POST', '/api/rate', 'UserController', 'submitRating');
+$router->add('POST', '/api/report', 'UserController', 'submitReport');
 
 // Custom Pages & Contact
 $router->add('GET', '/p/([a-z0-9-]+)', 'PageController', 'show');
