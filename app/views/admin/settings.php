@@ -3,7 +3,7 @@
         <div class="tab active" data-target="general">General</div>
         <div class="tab" data-target="seo">SEO & Analytics</div>
         <div class="tab" data-target="mail">Mail (SMTP)</div>
-        <div class="tab" data-target="auth">Google Auth</div>
+        <div class="tab" data-target="auth">OAuth (Social)</div>
         <div class="tab" data-target="security">Security</div>
     </div>
 
@@ -71,23 +71,34 @@
 
         <!-- Auth -->
         <div id="auth" class="tab-content">
+            <h2 style="margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Google Auth</h2>
             <label>Google Client ID</label>
             <input type="text" name="google_client_id" value="<?= htmlspecialchars($settings['google_client_id'] ?? '') ?>">
             <label>Google Client Secret</label>
             <input type="password" name="google_client_secret" value="<?= htmlspecialchars($settings['google_client_secret'] ?? '') ?>">
             <label>Redirect URI</label>
             <?php 
-                // Always use dynamic URL based on SITE_URL or current host
                 if (defined('SITE_URL') && strpos(SITE_URL, 'localhost') === false) {
-                    $defaultUri = SITE_URL . '/auth/google/callback';
+                    $gUri = rtrim(SITE_URL, '/') . '/auth/google/callback';
+                    $fbUri = rtrim(SITE_URL, '/') . '/auth/facebook/callback';
                 } else {
                     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
                     $domain = $_SERVER['HTTP_HOST'];
-                    $defaultUri = $protocol . $domain . '/auth/google/callback';
+                    $gUri = $protocol . $domain . '/auth/google/callback';
+                    $fbUri = $protocol . $domain . '/auth/facebook/callback';
                 }
             ?>
-            <input type="text" name="google_redirect_uri" value="<?= htmlspecialchars($defaultUri) ?>" readonly>
-            <p style="font-size: 0.8rem; color: var(--text-muted);">Copy this Redirect URI to your Google Cloud Console.</p>
+            <input type="text" name="google_redirect_uri" value="<?= htmlspecialchars($gUri) ?>" readonly>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 30px;">Copy this URI to your Google Cloud Console.</p>
+
+            <h2 style="margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Facebook Auth</h2>
+            <label>Facebook App ID</label>
+            <input type="text" name="facebook_app_id" value="<?= htmlspecialchars($settings['facebook_app_id'] ?? '') ?>">
+            <label>Facebook App Secret</label>
+            <input type="password" name="facebook_app_secret" value="<?= htmlspecialchars($settings['facebook_app_secret'] ?? '') ?>">
+            <label>Redirect URI</label>
+            <input type="text" name="facebook_redirect_uri" value="<?= htmlspecialchars($fbUri) ?>" readonly>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Copy this URI to your Facebook Developer App settings.</p>
         </div>
 
         <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
