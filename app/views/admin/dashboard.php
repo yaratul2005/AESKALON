@@ -48,7 +48,7 @@
             <h4 style="margin: 0 0 10px; color: #ef4444;">Updates Available</h4>
             <p style="font-size: 0.9rem; margin-bottom: 10px;">Create a backup before updating.</p>
             <form action="/admin/run-updates" method="POST">
-                <input type="hidden" name="csrf_token" value="<?= Csrf::generate() ?>">
+                <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                 <button type="submit" class="btn" style="background: #ef4444; width: 100%;">Apply <?= $pendingUpdatesCount ?> Updates</button>
             </form>
         </div>

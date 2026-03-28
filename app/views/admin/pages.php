@@ -22,7 +22,7 @@
                 <td style="padding: 10px;">
                     <a href="/admin/pages/edit/<?= $p['id'] ?>" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Edit</a>
                     <form action="/admin/pages/delete" method="POST" style="display:inline;">
-                        <input type="hidden" name="csrf_token" value="<?= Csrf::generate() ?>">
+                        <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                         <input type="hidden" name="id" value="<?= $p['id'] ?>">
                         <button type="submit" class="btn" style="padding: 5px 10px; font-size: 0.8rem; background: #f87171; margin-left: 5px; cursor: pointer; border: none; font-family: inherit;" onclick="return confirm('Are you sure?')">Delete</button>
                     </form>

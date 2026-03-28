@@ -347,6 +347,7 @@ footer {
     margin-bottom: 2rem;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -918,6 +919,7 @@ footer {
     margin: 0;
     background: linear-gradient(to right, #fff, #94a3b8);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -1025,4 +1027,49 @@ footer {
         width: 120px;
         height: 120px;
     }
+}
+
+/* --- Watch Interface Enhancements --- */
+.animate-fade-in {
+    animation: luxuriousFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    transform: translateY(15px);
+}
+
+@keyframes luxuriousFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-watch-later {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    padding: 12px 24px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    backdrop-filter: blur(10px);
+}
+
+.btn-watch-later:hover {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
+}
+
+.btn-watch-later svg {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-watch-later:hover svg {
+    transform: scale(1.1) rotate(5deg);
 }
