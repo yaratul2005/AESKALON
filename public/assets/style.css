@@ -6,16 +6,16 @@
 }
 
 :root {
-    --bg: #090e17;
-    /* Darker, richer navy */
-    --surface: #141c2b;
+    --bg: #080a0f;
+    /* Cinematic Navy Black */
+    --surface: #10141d;
     /* Sleek surface */
     --primary: #0ea5e9;
     /* Vibrant sky blue */
     --primary-hover: #38bdf8;
     --primary-glow: rgba(14, 165, 233, 0.35);
-    --accent: #f43f5e;
-    /* Vibrant rose */
+    --accent: #e8b84b;
+    /* Premium Gold Accent */
     --text: #f8fafc;
     --text-muted: #cbd5e1;
     --glass: rgba(9, 14, 23, 0.75);
@@ -31,6 +31,14 @@ body {
     overflow-x: hidden;
     line-height: 1.6;
     scroll-behavior: smooth;
+}
+
+h1,
+h2,
+h3,
+.section-title {
+    font-family: 'Bebas Neue', 'Outfit', sans-serif;
+    letter-spacing: 0.5px;
 }
 
 /* Custom Webkit Scrollbar */

@@ -23,7 +23,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
@@ -60,12 +60,10 @@
         </nav>
         
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div class="search-container" id="searchContainer">
-                <svg class="search-icon" onclick="toggleMobileSearch()" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <div class="mobile-search-wrapper">
-                    <input type="text" class="search-input" placeholder="Search movies, series..." id="searchInput">
-                </div>
-                <div class="search-results" id="searchResults"></div>
+            <div class="search-trigger">
+                <button onclick="document.getElementById('fullSearchOverlay').classList.add('active'); document.getElementById('fullSearchInput').focus();" style="background:none; border:none; color:var(--text); cursor:pointer; display: flex; align-items: center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </button>
             </div>
 
             <?php if(isset($_SESSION['user_id'])): ?>
@@ -92,76 +90,88 @@
     @media (max-width: 768px) { .mobile-hidden { display: none !important; } }
 </style>
 <script>
-    const searchInput = document.getElementById('searchInput');
-    const searchContainer = document.getElementById('searchContainer');
-    
-    function toggleMobileSearch() {
-        if (window.innerWidth <= 768) {
-            searchContainer.classList.toggle('mobile-active');
-            if (searchContainer.classList.contains('mobile-active')) {
-                searchInput.focus();
-            }
-        }
-    }
+    // Legacy inline search script removed, migrated to overlay script at bottom of body
+</script>
 
-    const searchResults = document.getElementById('searchResults');
-    let debounceTimer;
+<!-- Full Screen Search Overlay -->
+<div id="fullSearchOverlay" class="full-search-overlay">
+    <button class="fs-close" onclick="document.getElementById('fullSearchOverlay').classList.remove('active')">&times;</button>
+    <div class="fs-search-container">
+        <input type="text" id="fullSearchInput" class="fs-search-input" placeholder="What do you want to watch?">
+        <div id="fsSearchResults" class="fs-search-results"></div>
+    </div>
+</div>
 
-    searchInput.addEventListener('input', (e) => {
+<style>
+.full-search-overlay { position: fixed; inset: 0; background: rgba(8,10,15,0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); z-index: 99999; display: flex; align-items: flex-start; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.4s ease; padding-top: 15vh; }
+.full-search-overlay.active { opacity: 1; visibility: visible; }
+.fs-close { position: absolute; top: 30px; right: 40px; background: none; border: none; font-size: 3rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s; }
+.fs-close:hover { color: var(--accent); }
+.fs-search-container { width: 90%; max-width: 900px; display: flex; flex-direction: column; gap: 40px; }
+.fs-search-input { width: 100%; font-size: clamp(2rem, 5vw, 4rem); font-family: 'Bebas Neue', sans-serif; background: transparent; border: none; border-bottom: 2px solid rgba(255,255,255,0.2); color: white; padding-bottom: 10px; transition: border-color 0.3s; box-shadow: none; outline: none; }
+.fs-search-input:focus { border-color: var(--primary); }
+.fs-search-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 20px; max-height: 60vh; overflow-y: auto; scrollbar-width: none; }
+.fs-search-results::-webkit-scrollbar { display: none; }
+.fs-result-card { display: flex; flex-direction: column; gap: 8px; text-decoration: none; transition: transform 0.2s; }
+.fs-result-card:hover { transform: scale(1.05); }
+.fs-result-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+.fs-result-title { font-size: 0.9rem; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.fs-result-meta { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+</style>
+
+<script>
+    const fsInput = document.getElementById('fullSearchInput');
+    const fsResults = document.getElementById('fsSearchResults');
+    let fsDebounceTimer;
+
+    fsInput.addEventListener('input', (e) => {
         const query = e.target.value;
-        clearTimeout(debounceTimer);
+        clearTimeout(fsDebounceTimer);
         
         if (query.length < 2) {
-            searchResults.classList.remove('active');
-            return;
+            fsResults.innerHTML = ''; return;
         }
 
-        // Show spinner while waiting
-        searchResults.innerHTML = '<div style="padding:20px;text-align:center;"><div style="display:inline-block;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div><style>@keyframes spin { 100% { transform: rotate(360deg); } }</style></div>';
-        searchResults.classList.add('active');
+        fsResults.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--primary); padding: 50px;">Searching database...</div>';
 
-        debounceTimer = setTimeout(async () => {
+        fsDebounceTimer = setTimeout(async () => {
              try {
                  const res = await fetch('/api/search?q=' + encodeURIComponent(query));
                  const data = await res.json();
                  
-                 searchResults.innerHTML = '';
+                 fsResults.innerHTML = '';
                  
                  if (data.results && data.results.length > 0) {
-                     data.results.slice(0, 10).forEach(item => {
+                     data.results.forEach(item => {
                          const mediaType = item.media_type;
                          if (mediaType !== 'movie' && mediaType !== 'tv') return;
                          
                          const title = item.title || item.name;
                          const date = (item.release_date || item.first_air_date || '').substring(0,4);
-                         const img = item.poster_path ? 'https://image.tmdb.org/t/p/w92' + item.poster_path : 'https://via.placeholder.com/45x68?text=No+Img';
+                         const img = item.poster_path ? 'https://image.tmdb.org/t/p/w200' + item.poster_path : 'https://placehold.co/200x300?text=No+Img';
                          
                          const div = document.createElement('a');
                          div.href = `/watch/${item.id}?type=${mediaType}`;
-                         div.className = 'search-item animate-fade-in';
+                         div.className = 'fs-result-card animate-fade-in';
                          div.innerHTML = `
-                            <img src="${img}">
-                            <div class="search-info">
-                                <span class="search-title">${title}</span>
-                                <span class="search-meta">${mediaType.toUpperCase()} • ${date}</span>
-                            </div>
+                            <img src="${img}" class="fs-result-poster">
+                            <span class="fs-result-title">${title}</span>
+                            <span class="fs-result-meta">${mediaType} • ${date}</span>
                          `;
-                         searchResults.appendChild(div);
+                         fsResults.appendChild(div);
                      });
                  } else {
-                     searchResults.innerHTML = '<div style="padding:15px;text-align:center;color:var(--text-muted);">No results found</div>';
+                     fsResults.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 50px; font-size: 1.5rem;">No results found.</div>';
                  }
              } catch(e) {
-                 searchResults.innerHTML = '<div style="padding:15px;text-align:center;color:var(--accent);">Error searching</div>';
+                 fsResults.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--accent); padding: 50px;">Error searching</div>';
              }
-        }, 300);
+        }, 400); // 400ms Debounce requested
     });
 
-    // Close on click outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-container')) {
-             searchResults.classList.remove('active');
-        }
+    // Close on ESC
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') document.getElementById('fullSearchOverlay').classList.remove('active');
     });
 </script>
 
@@ -215,6 +225,34 @@
             }).catch(err => console.log('SW error:', err));
         });
     }
+
+    // Global Trailer Modal Logic
+    function openTrailer(youtubeKey) {
+        const modal = document.getElementById('trailerModal');
+        const iframe = document.getElementById('trailerIframe');
+        iframe.src = 'https://www.youtube.com/embed/' + youtubeKey + '?autoplay=1&rel=0&modestbranding=1';
+        modal.style.display = 'flex';
+        setTimeout(() => modal.style.opacity = '1', 10);
+    }
+    
+    function closeTrailer() {
+        const modal = document.getElementById('trailerModal');
+        const iframe = document.getElementById('trailerIframe');
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.display = 'none';
+            iframe.src = '';
+        }, 300);
+    }
 </script>
+
+<!-- Trailer Overlay -->
+<div id="trailerModal" style="display: none; opacity: 0; transition: opacity 0.3s ease; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8, 10, 15, 0.95); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(10px);">
+    <div style="position: relative; width: 90%; max-width: 1000px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+        <button onclick="closeTrailer()" style="position: absolute; top: 15px; right: 20px; background: rgba(0,0,0,0.5); border: none; color: white; font-size: 2rem; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; z-index: 10000; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">&times;</button>
+        <iframe id="trailerIframe" style="width: 100%; height: 100%; border: none;" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+</div>
+
 </body>
 </html>

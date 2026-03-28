@@ -23,8 +23,17 @@ class HomeController {
         $db = Database::getInstance();
         $settings = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
 
-        // Fetch Categories with Caching
-        $trending = $this->fetchTMDB('/trending/movie/week', 'home_trending');
+        // Pure Local Flat-File Caching for Zero Latency
+        $cacheDir = __DIR__ . '/../../storage/cache/';
+        
+        $trending = file_exists($cacheDir . 'trending.json') 
+            ? json_decode(file_get_contents($cacheDir . 'trending.json'), true) 
+            : $this->fetchTMDB('/trending/movie/week', 'home_trending');
+            
+        $upcoming = file_exists($cacheDir . 'upcoming.json') 
+            ? json_decode(file_get_contents($cacheDir . 'upcoming.json'), true) 
+            : $this->fetchTMDB('/movie/upcoming?region=US', 'home_upcoming');
+            
         $series = $this->fetchTMDB('/trending/tv/week', 'home_series');
         $anime = $this->fetchTMDB('/discover/tv?with_keywords=210024', 'home_anime');
 

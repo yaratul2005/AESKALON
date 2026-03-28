@@ -26,7 +26,7 @@ class WatchController {
         $db = Database::getInstance();
         $settings = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
 
-        $movie = $this->fetchTMDB("/$type/$id");
+        $movie = $this->fetchTMDB("/$type/$id?append_to_response=videos");
         
         if (!$movie || isset($movie['success']) && !$movie['success']) {
             echo "Content not found."; return;

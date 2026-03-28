@@ -36,8 +36,13 @@ class BrowseController {
         } elseif ($type == 'anime') {
             $endpoint = '/discover/tv?with_keywords=210024';
         }
+        
+        $genre = preg_replace('/[^0-9]/', '', $_GET['genre'] ?? '');
+        if ($genre) {
+            $endpoint .= (strpos($endpoint, '?') ? '&' : '?') . 'with_genres=' . $genre;
+        }
 
-        $cacheKey = "browse_{$type}_{$page}";
+        $cacheKey = "browse_{$type}_{$page}_" . ($genre ?: 'all');
         $apiUrl = TMDB_BASE_URL . $endpoint . (strpos($endpoint, '?') ? '&' : '?') . 'api_key=' . TMDB_API_KEY . "&page=$page";
 
         $data = Cache::remember($cacheKey, function() use ($apiUrl) {

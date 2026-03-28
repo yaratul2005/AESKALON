@@ -1,5 +1,23 @@
 
 
+<!-- JSON-LD SEO Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "<?= $type == 'tv' ? 'TVSeries' : 'Movie' ?>",
+  "name": "<?= htmlspecialchars($title) ?>",
+  "image": "https://image.tmdb.org/t/p/w1280<?= $movie['backdrop_path'] ?? $movie['poster_path'] ?? '' ?>",
+  "description": "<?= htmlspecialchars($movie['overview'] ?? '') ?>",
+  "datePublished": "<?= htmlspecialchars($movie['release_date'] ?? $movie['first_air_date'] ?? '') ?>",
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "<?= $movie['vote_average'] ?? '0' ?>",
+    "bestRating": "10",
+    "ratingCount": "<?= $movie['vote_count'] ?? '1' ?>"
+  }
+}
+</script>
+
 <div class="player-container animate-fade-in">
     <!-- VidLink Player -->
     <div class="iframe-wrapper">
@@ -45,7 +63,24 @@
                 <p class="overview"><?= htmlspecialchars($movie['overview']) ?></p>
             </div>
         </div>
-        <div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+           <?php 
+               $trailerKey = '';
+               if (isset($movie['videos']['results'])) {
+                   foreach($movie['videos']['results'] as $v) {
+                       if ($v['site'] == 'YouTube' && ($v['type'] == 'Trailer' || $v['type'] == 'Teaser')) {
+                           $trailerKey = $v['key']; break;
+                       }
+                   }
+               }
+           ?>
+           <?php if($trailerKey): ?>
+               <button onclick="openTrailer('<?= $trailerKey ?>')" class="btn-trailer" style="background: var(--accent); color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;">
+                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                   Watch Trailer
+               </button>
+           <?php endif; ?>
+           
            <button id="btnWatchLater" class="btn-watch-later">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Watch Later
