@@ -26,7 +26,13 @@ class WatchController {
         $db = Database::getInstance();
         $settings = $db->query("SELECT * FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
 
-        $movie = $this->fetchTMDB("/$type/$id?append_to_response=videos");
+        $movie = $this->fetchTMDB("/$type/$id?append_to_response=videos,credits,keywords");
+        
+        $servers = [
+            ['name' => 'VidLink (Ultra Fast)', 'url' => 'https://vidlink.pro/' . ($type == 'movie' ? "movie/$id" : "tv/$id/$season/$episode")],
+            ['name' => 'Vidsrc.to (Stable)', 'url' => 'https://vidsrc.to/embed/' . ($type == 'movie' ? "movie/$id" : "tv/$id/$season/$episode")],
+            ['name' => 'SuperEmbed (HD)', 'url' => 'https://multiembed.mov/directstream.php?video_id=' . $id . ($type == 'tv' ? "&tmdb=1&s=$season&e=$episode" : "")]
+        ];
         
         if (!$movie || isset($movie['success']) && !$movie['success']) {
             echo "Content not found."; return;
