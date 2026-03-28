@@ -108,7 +108,7 @@ class AuthController {
         $emailResult = $this->sendOtpEmail($email, $otp);
         
         if (!$emailResult['success']) {
-            $this->jsonResponse('error', "Email Delivery Failed: Cannot send OTP. Check SMTP provider.");
+            $this->jsonResponse('error', "SMTP Error: " . $emailResult['error']);
         }
 
         $_SESSION['verify_email'] = $email; // Store for verify step

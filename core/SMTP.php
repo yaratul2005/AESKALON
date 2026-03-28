@@ -38,12 +38,13 @@ class SMTP {
 
         $this->read($socket); // Initial greeting
 
-        if (!$this->cmd($socket, "EHLO " . $_SERVER['SERVER_NAME'])) return false;
+        $serverName = !empty($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost';
+        if (!$this->cmd($socket, "EHLO " . $serverName)) return false;
         
-        if ($this->port == 587) {
+        if ($this->port == 587 || $this->port == 2525) {
             if (!$this->cmd($socket, "STARTTLS")) return false;
             stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
-            if (!$this->cmd($socket, "EHLO " . $_SERVER['SERVER_NAME'])) return false;
+            if (!$this->cmd($socket, "EHLO " . $serverName)) return false;
         }
 
         if (!$this->cmd($socket, "AUTH LOGIN")) return false;
@@ -64,7 +65,15 @@ class SMTP {
         $headers .= "X-Mailer: PHP/" . phpversion();
 
         fwrite($socket, "$headers\r\n\r\n$body\r\n.\r\n");
-        $this->read($socket); // Expect 250 OK
+        $response = $this->read($socket); // Expect 250 OK
+        
+        $code = substr($response, 0, 3);
+        if ($code >= 400) {
+            $this->log("DATA rejected: $response");
+            $this->cmd($socket, "QUIT");
+            fclose($socket);
+            return false;
+        }
 
         $this->cmd($socket, "QUIT");
         fclose($socket);
