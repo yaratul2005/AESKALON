@@ -116,6 +116,10 @@
             return;
         }
 
+        // Show spinner while waiting
+        searchResults.innerHTML = '<div style="padding:20px;text-align:center;"><div style="display:inline-block;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div><style>@keyframes spin { 100% { transform: rotate(360deg); } }</style></div>';
+        searchResults.classList.add('active');
+
         debounceTimer = setTimeout(async () => {
              try {
                  const res = await fetch('/api/search?q=' + encodeURIComponent(query));
@@ -134,7 +138,7 @@
                          
                          const div = document.createElement('a');
                          div.href = `/watch/${item.id}?type=${mediaType}`;
-                         div.className = 'search-item';
+                         div.className = 'search-item animate-fade-in';
                          div.innerHTML = `
                             <img src="${img}">
                             <div class="search-info">
@@ -144,12 +148,12 @@
                          `;
                          searchResults.appendChild(div);
                      });
-                     searchResults.classList.add('active');
                  } else {
-                     searchResults.innerHTML = '<div style="padding:15px;text-align:center;color:#94a3b8;">No results found</div>';
-                     searchResults.classList.add('active');
+                     searchResults.innerHTML = '<div style="padding:15px;text-align:center;color:var(--text-muted);">No results found</div>';
                  }
-             } catch(e) {}
+             } catch(e) {
+                 searchResults.innerHTML = '<div style="padding:15px;text-align:center;color:var(--accent);">Error searching</div>';
+             }
         }, 300);
     });
 

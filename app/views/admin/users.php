@@ -22,7 +22,11 @@
                 <td style="padding: 10px;"><?= $user['created_at'] ?></td>
                 <td style="padding: 10px;">
                     <?php if($user['username'] !== 'admin'): ?>
-                    <a href="/admin/delete-user/<?= $user['id'] ?>" onclick="return confirm('Delete this user?')" style="color: #f87171;">Delete</a>
+                    <form action="/admin/delete-user" method="POST" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="<?= Csrf::generate() ?>">
+                        <input type="hidden" name="id" value="<?= $user['id'] ?>">
+                        <button type="submit" onclick="return confirm('Delete this user?')" style="color: #f87171; background:none; border:none; cursor:pointer; font-weight:bold; padding:0;">Delete</button>
+                    </form>
                     <?php else: ?>
                     <span style="color: var(--text-muted); font-size: 0.8rem;">Super Admin</span>
                     <?php endif; ?>
@@ -36,6 +40,7 @@
 <div class="card">
     <h3>Ban API/User</h3>
     <form action="/admin/ban-ip" method="POST" style="display: flex; gap: 10px;">
+        <input type="hidden" name="csrf_token" value="<?= Csrf::generate() ?>">
         <input type="text" name="ip" placeholder="IP Address to Ban" required style="margin-bottom: 0;">
         <input type="text" name="reason" placeholder="Reason (Optional)" style="margin-bottom: 0;">
         <button type="submit" class="btn" style="background: #f87171;">Ban IP</button>
@@ -61,6 +66,7 @@
                 <td style="padding: 10px;"><?= $ban['banned_at'] ?></td>
                 <td style="padding: 10px;">
                     <form action="/admin/unban-ip" method="POST">
+                        <input type="hidden" name="csrf_token" value="<?= Csrf::generate() ?>">
                         <input type="hidden" name="ip" value="<?= $ban['ip_address'] ?>">
                         <button type="submit" class="btn" style="background: transparent; color: #f87171; padding: 5px;">Unban</button>
                     </form>

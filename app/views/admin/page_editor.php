@@ -11,6 +11,7 @@
 
 <div class="card">
     <form action="/admin/pages/save" method="POST" id="pageForm">
+        <input type="hidden" name="csrf_token" value="<?= Csrf::generate() ?>">
         <input type="hidden" name="id" value="<?= $page['id'] ?? '' ?>">
         
         <label>Page Title</label>

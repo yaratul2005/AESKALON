@@ -68,6 +68,7 @@ $router->add('GET', '/admin/dashboard', 'AdminController', 'dashboard');
 $router->add('GET', '/admin/settings', 'AdminController', 'settings');
 $router->add('POST', '/admin/update', 'AdminController', 'updateSettings');
 $router->add('GET', '/admin/users', 'AdminController', 'users');
+$router->add('POST', '/admin/delete-user', 'AdminController', 'deleteUser');
 $router->add('POST', '/admin/ban-ip', 'AdminController', 'banIp');
 $router->add('POST', '/admin/unban-ip', 'AdminController', 'unbanIp');
 $router->add('POST', '/admin/run-updates', 'AdminController', 'runUpdates');
@@ -77,7 +78,7 @@ $router->add('GET', '/admin/test-smtp', 'AdminController', 'testSmtp');
 $router->add('GET', '/admin/pages', 'AdminController', 'pages');
 $router->add('GET', '/admin/pages/new', 'AdminController', 'editPage');
 $router->add('GET', '/admin/pages/edit/(\d+)', 'AdminController', 'editPage');
-$router->add('GET', '/admin/pages/delete/(\d+)', 'AdminController', 'deletePage');
+$router->add('POST', '/admin/pages/delete', 'AdminController', 'deletePage');
 $router->add('POST', '/admin/pages/save', 'AdminController', 'savePage');
 
 $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

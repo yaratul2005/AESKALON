@@ -111,15 +111,26 @@ class AdminController {
         require_once '../app/views/admin/layout.php';
     }
     
-    public function deleteUser($id) {
+    public function deleteUser() {
         if (!$this->isAuthenticated()) exit("Unauthorized");
-        $db = Database::getInstance();
-        $db->query("DELETE FROM users WHERE id = ?", [$id]);
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            $_SESSION['error'] = "Security Token Expired.";
+            return header('Location: /admin/users');
+        }
+        $id = $_POST['id'] ?? null;
+        if ($id) {
+            $db = Database::getInstance();
+            $db->query("DELETE FROM users WHERE id = ?", [$id]);
+        }
         header('Location: /admin/users');
     }
 
     public function banIp() {
         if (!$this->isAuthenticated()) exit("Unauthorized");
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            $_SESSION['error'] = "Security Token Expired.";
+            return header('Location: /admin/users');
+        }
         $ip = $_POST['ip'] ?? '';
         $reason = $_POST['reason'] ?? 'Banned by Admin';
         if ($ip) {
@@ -133,6 +144,10 @@ class AdminController {
 
     public function unbanIp() {
         if (!$this->isAuthenticated()) exit("Unauthorized");
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            $_SESSION['error'] = "Security Token Expired.";
+            return header('Location: /admin/users');
+        }
         $ip = $_POST['ip'] ?? '';
         if ($ip) {
             $db = Database::getInstance();
@@ -153,6 +168,10 @@ class AdminController {
 
     public function updateSettings() {
         if (!$this->isAuthenticated()) exit("Unauthorized");
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            $_SESSION['error'] = "Security Token Expired.";
+            return header('Location: /admin/settings');
+        }
         $db = Database::getInstance();
         
         // Handle Favicon Upload
@@ -181,6 +200,10 @@ class AdminController {
 
     public function runUpdates() {
         if (!$this->isAuthenticated()) exit("Unauthorized");
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            $_SESSION['error'] = "Security Token Expired.";
+            return header('Location: /admin/dashboard');
+        }
         $db = Database::getInstance();
         $updateFiles = glob('../updates/*.sql');
         sort($updateFiles);
@@ -280,6 +303,10 @@ class AdminController {
 
     public function savePage() {
         if (!$this->isAuthenticated()) exit("Unauthorized");
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            $_SESSION['error'] = "Security Token Expired.";
+            return header('Location: /admin/pages');
+        }
         $id = $_POST['id'] ?? null;
         $title = $_POST['title'];
         $content = $_POST['content'];
@@ -296,11 +323,18 @@ class AdminController {
         header('Location: /admin/pages');
     }
 
-    public function deletePage($id) {
+    public function deletePage() {
         if (!$this->isAuthenticated()) exit("Unauthorized");
-        $db = Database::getInstance();
-        $db->query("DELETE FROM pages WHERE id = ?", [$id]);
-        $_SESSION['success'] = "Page deleted.";
+        if (!Csrf::verify($_POST['csrf_token'] ?? '')) {
+            $_SESSION['error'] = "Security Token Expired.";
+            return header('Location: /admin/pages');
+        }
+        $id = $_POST['id'] ?? null;
+        if ($id) {
+            $db = Database::getInstance();
+            $db->query("DELETE FROM pages WHERE id = ?", [$id]);
+            $_SESSION['success'] = "Page deleted.";
+        }
         header('Location: /admin/pages');
     }
 }

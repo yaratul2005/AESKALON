@@ -33,9 +33,11 @@
         <canvas id="topContentChart"></canvas>
     </div>
 
-    <!-- System Info -->
-    <div class="card">
-        <h3>System Status</h3>
+    <!-- Right Column Container -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- System Info -->
+        <div class="card">
+            <h3>System Status</h3>
         <p><strong>PHP Version:</strong> <?= phpversion() ?></p>
         <p><strong>Server:</strong> <?= $_SERVER['SERVER_SOFTWARE'] ?></p>
         <p><strong>DB Connection:</strong> <span style="color: #10b981;">Active</span></p>
@@ -46,10 +48,31 @@
             <h4 style="margin: 0 0 10px; color: #ef4444;">Updates Available</h4>
             <p style="font-size: 0.9rem; margin-bottom: 10px;">Create a backup before updating.</p>
             <form action="/admin/run-updates" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= Csrf::generate() ?>">
                 <button type="submit" class="btn" style="background: #ef4444; width: 100%;">Apply <?= $pendingUpdatesCount ?> Updates</button>
             </form>
         </div>
         <?php endif; ?>
+        </div>
+        
+        <!-- Activity Log Skeleton -->
+        <div class="card">
+            <h3>Recent Activity</h3>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9rem;">
+                <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
+                    <span>User <b>admin</b> updated settings</span>
+                    <span style="color:var(--text-muted); font-size:0.8rem;">2 mins ago</span>
+                </li>
+                <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
+                    <span>User <b>admin</b> logged in</span>
+                    <span style="color:var(--text-muted); font-size:0.8rem;">1 hour ago</span>
+                </li>
+                <li style="padding: 10px 0; display: flex; justify-content: space-between;">
+                    <span>System updates applied</span>
+                    <span style="color:var(--text-muted); font-size:0.8rem;">yesterday</span>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 

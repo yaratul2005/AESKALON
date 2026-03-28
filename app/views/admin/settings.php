@@ -8,6 +8,7 @@
     </div>
 
     <form action="/admin/update" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="<?= Csrf::generate() ?>">
         
         <!-- General -->
         <div id="general" class="tab-content active">

@@ -25,8 +25,10 @@ class BrowseController {
     }
 
     public function api() {
-        $type = $_GET['type'] ?? 'movie';
-        $page = $_GET['page'] ?? 1;
+        $allowedTypes = ['movie', 'tv', 'anime'];
+        $type = in_array($_GET['type'] ?? '', $allowedTypes) ? $_GET['type'] : 'movie';
+        $page = (int)($_GET['page'] ?? 1);
+        if ($page < 1) $page = 1;
         
         $endpoint = '/discover/movie';
         if ($type == 'tv') {

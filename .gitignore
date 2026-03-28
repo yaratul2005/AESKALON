@@ -1,0 +1,7 @@
+# Security
+config/config.php
+.env
+
+# OS
+.DS_Store
+Thumbs.db
